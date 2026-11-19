@@ -85,3 +85,28 @@ test('guard keeps domain names intact and titles lose wrapping brackets', async 
   assert.equal(cleanTitle('[Tata Steel plans hydrogen project]'), 'Tata Steel plans hydrogen project');
   assert.equal(cleanTitle('Steel (HRC) prices rise'), 'Steel (HRC) prices rise');
 });
+
+test('market: FRED CSV parsing and price form handling', async () => {
+  const { parseFredCsv, mergeObservations } = await import('../scripts/market/free-sources');
+  const { parseIssueForm, applyForm, parsePrice } = await import('../scripts/market/add-prices');
+  assert.deepEqual(parseFredCsv('observation_date,PIORECRUSDM\n2026-08-01,101.234\n2026-09-01,.\n2026-10-01,98.5\n'), [
+    { date: '2026-08-01', value: 101.23 },
+    { date: '2026-10-01', value: 98.5 },
+  ]);
+  const m = mergeObservations([{ date: '2026-10-01', value: 1, source: { name: 'x' } }], [{ date: '2026-10-01', value: 2, source: { name: 'y' } }]);
+  assert.equal(m.list.length, 1);
+  assert.equal(m.list[0].value, 2);
+  assert.equal(parsePrice('₹52,500'), 52500);
+  assert.equal(parsePrice('abc'), null);
+  const body = '### Date [date]\n\n2026-11-18\n\n### Source [source]\n\nMumbai dealer survey\n\n### Source link [source_url]\n\n_No response_\n\n### HR Coil (₹/tonne) [in-hrc]\n\n52,500\n\n### TMT Bar (₹/tonne) [in-tmt]\n\n_No response_\n\n### EN8 Round (₹/tonne) [in-en8]\n\nabc\n';
+  const fields = parseIssueForm(body);
+  assert.equal(fields['in-hrc'], '52,500');
+  assert.equal(fields['in-tmt'], undefined);
+  const obs = {};
+  const r = applyForm(fields, [{ id: 'in-hrc', name: 'HR Coil', unit: '₹/tonne' }, { id: 'in-en8', name: 'EN8 Round', unit: '₹/tonne' }], obs, '2026-11-19');
+  assert.equal(r.applied.length, 1);
+  assert.equal(r.errors.length, 1);
+  assert.deepEqual((obs as Record<string, unknown[]>)['in-hrc'], [{ date: '2026-11-18', value: 52500, source: { name: 'Mumbai dealer survey' } }]);
+  assert.equal(applyForm({ source: 's', 'in-hrc': '1' }, [{ id: 'in-hrc', name: 'HR', unit: '' }], {}, '2026-11-19').date, '2026-11-19');
+  assert.ok(applyForm({ date: '2030-01-01', source: 's', 'in-hrc': '1' }, [{ id: 'in-hrc', name: 'HR', unit: '' }], {}, '2026-11-19').errors.length);
+});

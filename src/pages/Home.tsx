@@ -1,13 +1,13 @@
 import { ArrowRight, ArrowUpRight, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { rankCards } from '../components/Blocks';
+import { ChangeBadge, rankCards } from '../components/Blocks';
 import { EmptyState, LoadingBlock, useDocumentTitle } from '../components/Common';
 import { articlePath } from '../components/Story';
 import { useData } from '../lib/data';
-import { formatDateLong, formatDateShort, formatTime } from '../lib/format';
+import { formatDateLong, formatDateShort, formatNumber, formatTime } from '../lib/format';
 import { CATEGORIES, CATEGORY_MAP, REGION_LABEL } from '../lib/taxonomy';
-import type { ArticleCard, CategoryId, EditionIndex, EditionIndexEntry, LatestFeed, Region, SiteMeta } from '../types/news';
+import type { ArticleCard, CategoryId, EditionIndex, EditionIndexEntry, LatestFeed, MarketData, Region, SiteMeta } from '../types/news';
 
 export function FirstRunNotice() {
   return (
@@ -200,6 +200,34 @@ function ExploreTopics() {
 }
 
 function MarketNote() {
+  const { data } = useData<MarketData>('market/indicators.json');
+  const live = (data?.indicators ?? []).filter((i) => i.status === 'available' && i.latest).slice(0, 5);
+  if (live.length) {
+    return (
+      <section className="rounded-[6px] border border-rule-strong bg-surface p-6" aria-labelledby="snapshot-h">
+        <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">Market snapshot</p>
+        <ul className="mt-3">
+          {live.map((i) => (
+            <li key={i.id} className="flex items-baseline justify-between gap-3 border-b border-rule py-2.5 last:border-b-0">
+              <span className="min-w-0">
+                <span className="block font-sans text-[14px] font-medium text-ink">{i.name}</span>
+                <span className="font-sans text-[11px] text-muted">
+                  {i.unit} · {formatDateShort(i.latest!.date)}
+                </span>
+              </span>
+              <span className="shrink-0 text-right">
+                <span className="block font-serif text-[17px] font-medium tabular-nums">{formatNumber(i.latest!.value, i.latest!.value < 1000 ? 2 : 0)}</span>
+                <ChangeBadge ind={i} />
+              </span>
+            </li>
+          ))}
+        </ul>
+        <Link to="/markets" className="mt-3 inline-flex items-center gap-1 font-sans text-[13px] font-semibold text-accent hover:underline">
+          All market data <ArrowUpRight size={13} aria-hidden="true" />
+        </Link>
+      </section>
+    );
+  }
   return (
     <section className="rounded-[6px] border border-rule-strong bg-surface p-6">
       <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">A note on market data</p>

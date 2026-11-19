@@ -1,0 +1,99 @@
+# Publishes prices submitted through the "Add market prices" issue form.
+# Only issues opened by the owner or collaborators are processed.
+name: Add market prices
+
+on:
+  issues:
+    types: [opened, edited]
+
+concurrency:
+  group: steelscope-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pages: write
+  id-token: write
+
+jobs:
+  apply:
+    if: startsWith(github.event.issue.title, '[Price]') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
+    runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.apply.outputs.published }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - id: apply
+        name: Apply prices
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          set +e
+          npx tsx scripts/market/add-prices.ts > summary.md
+          code=$?
+          set -e
+          cat summary.md
+          if [ $code -eq 0 ]; then echo "published=true" >> "$GITHUB_OUTPUT"; else echo "published=false" >> "$GITHUB_OUTPUT"; fi
+          if [ $code -gt 2 ]; then exit $code; fi
+      - name: Commit prices
+        if: steps.apply.outputs.published == 'true'
+        run: |
+          git config user.name "steelscope-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/market
+          git diff --cached --quiet && exit 0
+          git commit -q -m "data: market prices from issue #${{ github.event.issue.number }}"
+          for attempt in 1 2 3 4; do
+            git push && exit 0
+            sleep $((attempt * 5)); git pull --rebase --strategy-option=theirs
+          done
+          exit 1
+      - name: Reply on the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.issue.number }}
+          PUBLISHED: ${{ steps.apply.outputs.published }}
+        run: |
+          gh issue comment "$NUMBER" --repo "$GITHUB_REPOSITORY" --body-file summary.md
+          if [ "$PUBLISHED" = "true" ]; then gh issue close "$NUMBER" --repo "$GITHUB_REPOSITORY"; fi
+
+  build:
+    needs: apply
+    if: needs.apply.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build
+        env:
+          VITE_SITE_URL: ${{ vars.SITE_URL }}
+          SITE_BASE: ${{ vars.SITE_BASE }}
+          VITE_REFRESH_ENDPOINT: ${{ vars.REFRESH_ENDPOINT }}
+        run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

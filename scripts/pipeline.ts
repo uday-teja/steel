@@ -15,6 +15,7 @@ import { collect, type RawItem, type SourceConfig } from './ingestion/feeds';
 import { canonicalUrl, istDate, previousWeek, log, mapLimit, readJson, sha1, slugify, truncate } from './lib/util';
 import { classifyCategories, classifyRegion, detectCompanies, geoTags, heuristicImportance, isRelevant } from './processing/classify';
 import { buildEdition } from './publishing/editions';
+import { fetchFreeMarketData } from './market/free-sources';
 import { pruneEditions, writeEditionIndex, writeIndexes, writeMarket } from './publishing/indexes';
 import { DataStore, toCard } from './publishing/store';
 import { guardList, guardText } from './summarization/guard';
@@ -287,6 +288,12 @@ async function main(): Promise<void> {
   await writeIndexes(store, all, nowIso, site.retention.latestDays);
   const editionIndex = await writeEditionIndex(store, nowIso);
   await writeEditionIndex(store, nowIso, 'weekly');
+  if (!fixtures) try {
+    const added = await fetchFreeMarketData(store);
+    if (added) log('market', `${added} new free benchmark observation(s)`);
+  } catch (err) {
+    notes.push(`Free market data fetch failed: ${err instanceof Error ? err.message : err}`);
+  }
   await writeMarket(store, configDir, nowIso);
 
   // ------------------------------------------------------------ meta

@@ -1,0 +1,106 @@
+name: Add market prices
+description: Publish verified steel and raw-material prices on the SteelScope Markets page.
+title: "[Price] Market prices"
+labels: ["price-update"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Fill in **only the prices you have verified today**. Leave the rest empty.
+        Prices are published on the Markets page within a few minutes, with the source you give below.
+        Only the repository owner and collaborators can publish prices; other submissions are ignored.
+  - type: input
+    id: date
+    attributes:
+      label: Date [date]
+      description: Price date, YYYY-MM-DD. Leave empty for today (IST).
+      placeholder: "2026-11-19"
+  - type: input
+    id: source
+    attributes:
+      label: Source [source]
+      description: Where these prices come from, e.g. "Mumbai dealer survey" or "NMDC price circular".
+      placeholder: Mumbai dealer survey
+    validations:
+      required: true
+  - type: input
+    id: source_url
+    attributes:
+      label: Source link [source_url]
+      description: Optional public link for the source.
+      placeholder: https://
+  - type: input
+    id: in_ms_plate
+    attributes:
+      label: MS Plate (₹/tonne) [in-ms-plate]
+      description: Mild steel plate, ex-Mumbai/Delhi trade price.
+  - type: input
+    id: in_hrc
+    attributes:
+      label: HR Coil (₹/tonne) [in-hrc]
+      description: Hot-rolled coil 2.5–8 mm, IS 2062, domestic trade.
+  - type: input
+    id: in_crc
+    attributes:
+      label: CR Coil (₹/tonne) [in-crc]
+      description: Cold-rolled coil 0.9 mm, domestic trade.
+  - type: input
+    id: in_gp_gi
+    attributes:
+      label: GP / GI Coil (₹/tonne) [in-gp-gi]
+      description: Galvanised plain / galvanised iron coil.
+  - type: input
+    id: in_tmt
+    attributes:
+      label: TMT Bar (₹/tonne) [in-tmt]
+      description: Fe 500 TMT rebar, secondary market.
+  - type: input
+    id: in_ms_billet
+    attributes:
+      label: MS Billet (₹/tonne) [in-ms-billet]
+      description: Induction-furnace billet, Raipur/Mandi Gobindgarh.
+  - type: input
+    id: in_en8
+    attributes:
+      label: EN8 Round (₹/tonne) [in-en8]
+      description: EN8 (080M40) bright bar / round, trade price.
+  - type: input
+    id: in_c45
+    attributes:
+      label: C45 Round (₹/tonne) [in-c45]
+      description: C45 medium-carbon round bar, trade price.
+  - type: input
+    id: in_en19
+    attributes:
+      label: EN19 Round (₹/tonne) [in-en19]
+      description: EN19 (42CrMo4) alloy round bar, trade price.
+  - type: input
+    id: in_iron_ore_nmdc
+    attributes:
+      label: NMDC Lump Ore (₹/tonne) [in-iron-ore-nmdc]
+      description: NMDC published lump ore price (official announcement).
+  - type: input
+    id: coking_coal
+    attributes:
+      label: Premium Hard Coking Coal (US$/tonne) [coking-coal]
+      description: Seaborne premium HCC, FOB Australia.
+  - type: input
+    id: scrap_hms
+    attributes:
+      label: HMS 1&2 (80:20) Scrap (US$/tonne) [scrap-hms]
+      description: Imported melting scrap, CFR.
+  - type: input
+    id: china_hrc
+    attributes:
+      label: China HRC (US$/tonne) [china-hrc]
+      description: Hot-rolled coil export, FOB China.
+  - type: input
+    id: eu_hrc
+    attributes:
+      label: North Europe HRC (€/tonne) [eu-hrc]
+      description: Hot-rolled coil, ex-works northern Europe.
+  - type: input
+    id: us_hrc
+    attributes:
+      label: US Midwest HRC (US$/short ton) [us-hrc]
+      description: Hot-rolled coil, US Midwest.

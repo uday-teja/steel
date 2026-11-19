@@ -98,7 +98,7 @@ export async function writeEditionIndex(store: DataStore, now: string, folder: '
 interface Observation {
   date: string;
   value: number;
-  source: { name: string; url: string };
+  source: { name: string; url?: string };
 }
 
 /** Build market indicators strictly from verified observations; never estimates. */
@@ -109,7 +109,7 @@ export async function writeMarket(store: DataStore, configDir: string, now: stri
   );
   const obs = await store.read<Record<string, Observation[]>>('market/observations.json', {});
   const indicators: MarketIndicator[] = cfg.indicators.map((def) => {
-    const list = (obs[def.id] ?? []).filter((o) => Number.isFinite(o.value) && o.source?.url).sort((a, b) => b.date.localeCompare(a.date));
+    const list = (obs[def.id] ?? []).filter((o) => Number.isFinite(o.value) && o.source?.name).sort((a, b) => b.date.localeCompare(a.date));
     const [latest, previous] = list;
     return {
       ...def,

@@ -80,17 +80,21 @@ export function MarketsPage() {
                             <p className="meta mt-0.5 hidden sm:block">{i.description}</p>
                             <p className="meta mt-0.5">{i.unit}</p>
                           </td>
-                          <td className="py-3 pr-2 text-right font-serif text-[17px] tabular-nums">{i.latest ? formatNumber(i.latest.value) : <span className="text-muted">—</span>}</td>
-                          <td className="hidden py-3 pr-2 text-right tabular-nums text-ink-2 sm:table-cell">{i.previous ? formatNumber(i.previous.value) : '—'}</td>
+                          <td className="py-3 pr-2 text-right font-serif text-[17px] tabular-nums">{i.latest ? formatNumber(i.latest.value, i.latest.value < 1000 ? 2 : 0) : <span className="text-muted">—</span>}</td>
+                          <td className="hidden py-3 pr-2 text-right tabular-nums text-ink-2 sm:table-cell">{i.previous ? formatNumber(i.previous.value, i.previous.value < 1000 ? 2 : 0) : '—'}</td>
                           <td className="py-3 pr-2 text-right">
                             {i.status === 'available' ? <ChangeBadge ind={i} /> : <span className="meta">Unavailable</span>}
                           </td>
                           <td className="hidden py-3 pr-2 text-ink-2 md:table-cell">{i.history.length > 1 ? <Sparkline points={i.history} /> : <span className="meta">—</span>}</td>
                           <td className="hidden py-3 lg:table-cell">
-                            {i.source ? (
+                            {i.source?.url ? (
                               <a href={i.source.url} target="_blank" rel="noopener noreferrer" className="meta hover:text-ink">
                                 {i.source.name} · {i.updatedAt ? formatDateShort(i.updatedAt) : ''}
                               </a>
+                            ) : i.source ? (
+                              <span className="meta">
+                                {i.source.name} · {i.updatedAt ? formatDateShort(i.updatedAt) : ''}
+                              </span>
                             ) : (
                               <span className="meta">No verified source</span>
                             )}
@@ -105,6 +109,13 @@ export function MarketsPage() {
           })}
         </>
       )}
+
+      <p className="meta mt-6">
+        Iron ore updates monthly from the IMF. Other prices are added by SteelScope from verified market sources.{' '}
+        <a href={`${githubRepoUrl}/issues/new?template=add-prices.yml`} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-ink">
+          Maintainers: add prices
+        </a>
+      </p>
 
       <section className="mt-12 max-w-3xl">
         <SectionHeader title="Price and market news" href="/category/market-prices" linkLabel="Market & Prices" heavy />

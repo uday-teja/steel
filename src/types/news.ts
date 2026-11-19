@@ -192,7 +192,7 @@ export interface MarketIndicator {
   status: 'available' | 'unavailable';
   latest: { value: number; date: string } | null;
   previous: { value: number; date: string } | null;
-  source: { name: string; url: string } | null;
+  source: { name: string; url?: string } | null;
   updatedAt: string | null;
   history: { date: string; value: number }[];
 }

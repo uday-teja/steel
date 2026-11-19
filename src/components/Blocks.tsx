@@ -53,7 +53,7 @@ export function ChangeBadge({ ind }: { ind: MarketIndicator }) {
   return (
     <span className={`inline-flex items-center gap-0.5 font-sans text-[12px] font-semibold tabular-nums ${flat ? 'text-muted' : up ? 'text-positive' : 'text-negative'}`}>
       <Icon size={13} aria-hidden="true" />
-      {formatNumber(Math.abs(ch.abs))} ({ch.pct > 0 ? '+' : ''}
+      {formatNumber(Math.abs(ch.abs), Math.abs(ch.abs) < 100 ? 2 : 0)} ({ch.pct > 0 ? '+' : ''}
       {ch.pct.toFixed(1)}%)
     </span>
   );
