@@ -32,11 +32,11 @@ export function RegionPage({ region }: { region: Region }) {
   const edition = editions.data?.editions.find((e) => e.region === region);
 
   const header = (
-    <header className="flex flex-col gap-4 border-b border-rule pb-5 pt-6 sm:flex-row sm:items-end sm:justify-between sm:pt-8">
+    <header className="flex flex-col gap-3 border-b border-rule pb-4 pt-5 sm:flex-row sm:items-end sm:justify-between sm:pt-8">
       <div>
         <p className={`kicker ${region === 'india' ? 'text-india' : 'text-world'}`}>{region === 'india' ? 'Indian steel industry' : 'Global steel industry'}</p>
-        <h1 className="headline mt-1 text-[40px] leading-none sm:text-[56px]">{REGION_LABEL[region]}</h1>
-        <p className="dek mt-3 max-w-2xl text-[16px] leading-[1.5] sm:text-[18px]">{INTRO[region]}</p>
+        <h1 className="headline mt-1 text-[34px] leading-none sm:text-[48px]">{REGION_LABEL[region]}</h1>
+        <p className="dek mt-2 hidden max-w-2xl text-[17px] leading-[1.5] sm:block">{INTRO[region]}</p>
       </div>
       <RegionSwitch region={region} />
     </header>
