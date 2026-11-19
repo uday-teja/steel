@@ -103,6 +103,8 @@ export function LatestPage() {
 export function EditionsPage() {
   useDocumentTitle('Daily editions');
   const { data, loading } = useData<EditionIndex>('editions/index.json');
+  const weekly = useData<EditionIndex>('weekly/index.json');
+  const weeks = weekly.data?.editions ?? [];
   const eds = data?.editions ?? [];
   const byMonth = new Map<string, typeof eds>();
   for (const e of eds) {
@@ -112,8 +114,33 @@ export function EditionsPage() {
   return (
     <div className="pb-6">
       <PageTitle eyebrow="Daily Steel Intelligence" title="Edition archive">
-        Two editions are published every morning — India and World — and updated through the day as new reports arrive.
+        Two editions are published every morning — India and World — and updated through the day as new reports arrive. Every Monday a weekly report sums up the previous week.
       </PageTitle>
+      {weeks.length > 0 && (
+        <section className="mt-10">
+          <SectionHeader title="Weekly reports — The Week in Steel" heavy />
+          <ul className="grid gap-x-12 md:grid-cols-2">
+            {weeks.slice(0, 12).map((w) => (
+              <li key={`${w.region}-${w.date}`} className="border-t border-rule">
+                <Link to={`/weekly/${w.region}/${w.date}`} className="group grid grid-cols-[5.5rem_1fr] gap-3 py-3">
+                  <div>
+                    <p className={`kicker ${w.region === 'india' ? 'text-india' : 'text-world'}`}>{REGION_LABEL[w.region]}</p>
+                    <p className="meta mt-1 tabular-nums">{formatDateShort(w.date)}</p>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="headline text-[17px] leading-[1.25]">
+                      <span className="headline-link">{w.title}</span>
+                    </p>
+                    <p className="meta mt-1">
+                      Week {w.number} · {formatDateShort(w.date)} – {formatDateShort(w.periodEnd ?? w.date)} · {w.articleCount} stories
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {loading ? (
         <LoadingBlock />
       ) : !eds.length ? (
@@ -125,14 +152,8 @@ export function EditionsPage() {
           <section key={month} className="mt-10">
             <SectionHeader title={new Date(`${month}-15T12:00:00Z`).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })} heavy />
             <div className="grid gap-x-12 md:grid-cols-2">
-              <div>
-                <p className="kicker mb-1 text-india">India</p>
-                <EditionList entries={list.filter((e) => e.region === 'india')} />
-              </div>
-              <div>
-                <p className="kicker mb-1 mt-6 text-world md:mt-0">World</p>
-                <EditionList entries={list.filter((e) => e.region === 'world')} />
-              </div>
+              <EditionList entries={list.filter((e) => e.region === 'india')} />
+              <EditionList entries={list.filter((e) => e.region === 'world')} />
             </div>
           </section>
         ))

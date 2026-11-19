@@ -45,9 +45,12 @@ function formatDate(date: string): string {
   return new Date(`${date}T12:00:00+05:30`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });
 }
 
-function heuristicIntro(region: Region, date: string, articles: Article[]): string {
+function heuristicIntro(region: Region, date: string, articles: Article[], period?: { from: string; to: string }): string {
   const publishers = new Set(articles.map((a) => a.publisher)).size;
   const label = region === 'india' ? 'the Indian steel industry' : 'the global steel industry';
+  if (period) {
+    return `This weekly report brings together the ${articles.length} most significant ${articles.length === 1 ? 'development' : 'developments'} covering ${label} from ${formatDate(period.from)} to ${formatDate(period.to)}, drawn from ${publishers} ${publishers === 1 ? 'publisher' : 'publishers'} and ranked by importance. AI editorial commentary was not available, so summaries are the publishers' own excerpts.`;
+  }
   if (!articles.length) return `No qualifying developments covering ${label} were collected for ${formatDate(date)}. This edition will update automatically when new reports are published.`;
   return `This edition brings together ${articles.length} ${articles.length === 1 ? 'development' : 'developments'} covering ${label}, collected from ${publishers} ${publishers === 1 ? 'publisher' : 'publishers'} for ${formatDate(date)}. Stories are ranked by relevance and importance. AI editorial commentary was not available for this edition, so summaries are the publishers' own excerpts.`;
 }
@@ -60,8 +63,9 @@ export async function buildEdition(opts: {
   number: number;
   ai: AiProvider | null;
   now: string;
+  period?: { from: string; to: string };
 }): Promise<{ edition: Edition; aiError: boolean }> {
-  const { region, date, previous, number, ai, now } = opts;
+  const { region, date, previous, number, ai, now, period } = opts;
   const ranked = [...opts.articles].sort((a, b) => b.importance - a.importance || b.publishedAt.localeCompare(a.publishedAt));
   const sections = assignSections(region, ranked);
   const byId = new Map(ranked.map((a) => [a.id, a]));
@@ -74,6 +78,7 @@ export async function buildEdition(opts: {
       out = await ai.writeEdition({
         region,
         date,
+        period,
         articles: pool.map((a) => ({
           id: a.id,
           title: a.title,
@@ -115,12 +120,14 @@ export async function buildEdition(opts: {
   const aiIntro = g(out?.intro);
   const edition: Edition = {
     region,
+    kind: period ? 'weekly' : 'daily',
     date,
+    ...(period ? { periodEnd: period.to } : {}),
     number,
     title: (out?.title && g(out.title)) || featuredArticle?.title || `${region === 'india' ? 'India' : 'World'} Edition`,
     generatedAt: previous?.generatedAt ?? now,
     updatedAt: now,
-    intro: aiIntro ?? heuristicIntro(region, date, ranked),
+    intro: aiIntro ?? heuristicIntro(region, date, ranked, period),
     introIsAi: Boolean(aiIntro),
     featured: featuredArticle ? toCard(featuredArticle) : null,
     topStories: top,

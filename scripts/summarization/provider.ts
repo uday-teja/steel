@@ -39,6 +39,8 @@ export interface EditionArticleInput {
 export interface EditionInput {
   region: Region;
   date: string;
+  /** Present for weekly reports: inclusive date range covered. */
+  period?: { from: string; to: string };
   articles: EditionArticleInput[];
   sections: { id: string; title: string; articleIds: string[] }[];
 }

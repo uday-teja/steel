@@ -81,17 +81,17 @@ export async function writeIndexes(store: DataStore, articles: Article[], now: s
   await store.write('indexes/dates.json', { generatedAt: now, days } satisfies DatesIndex);
 }
 
-export async function writeEditionIndex(store: DataStore, now: string): Promise<EditionIndex> {
-  const files = await store.listEditionFiles();
+export async function writeEditionIndex(store: DataStore, now: string, folder: 'editions' | 'weekly' = 'editions'): Promise<EditionIndex> {
+  const files = await store.listEditionFiles(folder);
   const editions: EditionIndex['editions'] = [];
   for (const f of files) {
-    const e = await store.loadEdition(f.region, f.date);
+    const e = await store.loadEdition(f.region, f.date, folder);
     if (!e) continue;
-    editions.push({ region: e.region, date: e.date, number: e.number, title: e.title, headline: e.featured?.title ?? null, articleCount: e.articleCount, updatedAt: e.updatedAt });
+    editions.push({ region: e.region, date: e.date, ...(e.periodEnd ? { periodEnd: e.periodEnd } : {}), number: e.number, title: e.title, headline: e.featured?.title ?? null, articleCount: e.articleCount, updatedAt: e.updatedAt });
   }
   editions.sort((a, b) => b.date.localeCompare(a.date) || a.region.localeCompare(b.region));
   const index: EditionIndex = { generatedAt: now, editions };
-  await store.write('editions/index.json', index);
+  await store.write(`${folder}/index.json`, index);
   return index;
 }
 
@@ -133,10 +133,12 @@ export async function writeMarket(store: DataStore, configDir: string, now: stri
 export async function pruneEditions(store: DataStore, keepDays: number): Promise<number> {
   const cutoff = new Date(Date.now() - keepDays * 864e5).toISOString().slice(0, 10);
   let n = 0;
-  for (const f of await store.listEditionFiles()) {
-    if (f.date < cutoff) {
-      await store.removeFile('editions', f.region, `${f.date}.json`);
-      n++;
+  for (const folder of ['editions', 'weekly'] as const) {
+    for (const f of await store.listEditionFiles(folder)) {
+      if (f.date < cutoff) {
+        await store.removeFile(folder, f.region, `${f.date}.json`);
+        n++;
+      }
     }
   }
   for (const f of await store.listDir('days')) {

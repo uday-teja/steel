@@ -9,10 +9,11 @@ const NUM_RE = /(?:₹|rs\.?|\$|€|£|us\$)?\s?\d[\d,]*(?:\.\d+)?\s?(?:%|per ce
 function normaliseNumber(token: string): string | null {
   const digits = token.replace(/[^\d.]/g, '').replace(/^\.+|\.+$/g, '');
   if (!digits) return null;
-  // Ignore small ordinal-ish integers (1-12) used in prose ("two", "Q2", "10 stories"), and years.
+  // Ignore bare small integers (1-12) used in prose ("Q2", "10 stories"); never percentages or amounts.
   const n = Number(digits);
-  if (Number.isFinite(n) && Number.isInteger(n) && n <= 12) return null;
-  if (/^(19|20)\d{2}$/.test(digits)) return null;
+  if (Number.isFinite(n) && Number.isInteger(n) && n <= 12 && /^\d+$/.test(token.trim())) return null;
+  // Bare years ("in 2026") are allowed; amounts like "2,000", "₹2000" or "2000 tonnes" are not.
+  if (/^(19|20)\d{2}$/.test(token.trim()) && n >= 1990 && n <= 2039) return null;
   return digits.replace(/\.0+$/, '');
 }
 

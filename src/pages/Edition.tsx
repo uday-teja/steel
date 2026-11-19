@@ -4,7 +4,7 @@ import { EmptyState, LoadingBlock, SectionHeader, useDocumentTitle } from '../co
 import { ShareBar } from '../components/ShareBar';
 import { AiMark, articlePath, LeadStory, StoryItem } from '../components/Story';
 import { useData } from '../lib/data';
-import { formatDateLong, formatTime } from '../lib/format';
+import { formatDateLong, formatDateShort, formatTime } from '../lib/format';
 import { absoluteUrl, shareImageUrl, SITE } from '../lib/site';
 import { REGION_LABEL } from '../lib/taxonomy';
 import type { Edition, EditionIndex, Region } from '../types/news';
@@ -35,12 +35,17 @@ function Unavailable({ children }: { children: React.ReactNode }) {
   return <p className="font-sans text-[14px] italic leading-relaxed text-muted">{children}</p>;
 }
 
-export function EditionPage() {
+export function EditionPage({ kind = 'daily' }: { kind?: 'daily' | 'weekly' }) {
   const { region, date = '' } = useParams();
+  const weekly = kind === 'weekly';
+  const folder = weekly ? 'weekly' : 'editions';
+  const route = weekly ? 'weekly' : 'edition';
   const valid = isRegion(region) && /^\d{4}-\d{2}-\d{2}$/.test(date);
-  const { data: e, loading } = useData<Edition>(valid ? `editions/${region}/${date}.json` : null);
-  const index = useData<EditionIndex>('editions/index.json');
-  useDocumentTitle(e ? `${REGION_LABEL[e.region]} Edition, ${formatDateLong(e.date)}` : null);
+  const { data: e, loading } = useData<Edition>(valid ? `${folder}/${region}/${date}.json` : null);
+  const index = useData<EditionIndex>(`${folder}/index.json`);
+  const label = (r: Region) => (weekly ? `${REGION_LABEL[r]} Weekly Report` : `${REGION_LABEL[r]} Edition`);
+  const when = (x: { date: string; periodEnd?: string }) => (weekly ? `${formatDateShort(x.date)} – ${formatDateShort(x.periodEnd ?? x.date)}` : formatDateLong(x.date));
+  useDocumentTitle(e ? `${label(e.region)}, ${when(e)}` : null);
 
   if (!valid) return <Navigate to="/editions" replace />;
   if (loading) return <LoadingBlock />;
@@ -49,7 +54,7 @@ export function EditionPage() {
       <div className="py-10">
         <EmptyState title="Edition not found" icon="alert">
           <p>
-            There is no {REGION_LABEL[region]} Edition for {formatDateLong(date)}.{' '}
+            There is no {label(region)} for {weekly ? `the week of ${formatDateLong(date)}` : formatDateLong(date)}.{' '}
             <Link to="/editions" className="underline underline-offset-2">
               Browse all editions
             </Link>
@@ -64,22 +69,22 @@ export function EditionPage() {
   const pos = same.findIndex((x) => x.date === e.date);
   const newer = pos > 0 ? same[pos - 1] : null;
   const older = pos >= 0 && pos < same.length - 1 ? same[pos + 1] : null;
-  const url = absoluteUrl(`/edition/${e.region}/${e.date}`);
+  const url = absoluteUrl(`/${route}/${e.region}/${e.date}`);
   const regionColor = e.region === 'india' ? 'text-india' : 'text-world';
 
   return (
     <article className="mx-auto max-w-[1080px] pb-6">
       {/* Edition masthead */}
       <header className="pt-8 text-center sm:pt-12">
-        <p className={`kicker ${regionColor}`}>Daily Steel Intelligence</p>
+        <p className={`kicker ${regionColor}`}>{weekly ? `The Week in Steel · ${REGION_LABEL[e.region]}` : 'Daily Steel Intelligence'}</p>
         <h1 className="mt-2 font-serif text-[40px] font-bold leading-none tracking-[-0.02em] sm:text-[64px]">
-          {REGION_LABEL[e.region]} Edition
+          {weekly ? 'Weekly Report' : `${REGION_LABEL[e.region]} Edition`}
         </h1>
         <div className="rule-double mt-5" />
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 border-b border-rule py-2 font-sans text-[12px] uppercase tracking-[0.08em] text-ink-2">
           <span>No. {e.number}</span>
           <span aria-hidden="true">·</span>
-          <time dateTime={e.date}>{formatDateLong(e.date)}</time>
+          <time dateTime={e.date}>{when(e)}</time>
           <span aria-hidden="true">·</span>
           <span>
             {e.articleCount} developments · {e.sources.length} publishers
@@ -205,7 +210,7 @@ export function EditionPage() {
       </section>
 
       <section className="mx-auto mt-12 max-w-[720px] border-t border-rule pt-6">
-        <ShareBar url={url} title={`${SITE.name} ${REGION_LABEL[e.region]} Edition — ${formatDateLong(e.date)}: ${e.title}`} imageUrl={shareImageUrl('edition', `${e.region}-${e.date}`)} label="Share this edition" />
+        <ShareBar url={url} title={`${SITE.name} ${label(e.region)} — ${when(e)}: ${e.title}`} imageUrl={shareImageUrl('edition', `${weekly ? 'weekly-' : ''}${e.region}-${e.date}`)} label={weekly ? 'Share this report' : 'Share this edition'} />
         <div className="mt-8">
           <p className="kicker text-muted">Sources in this edition</p>
           <p className="mt-2 font-sans text-[13px] leading-relaxed text-ink-2">{e.sources.map((s) => `${s.name} (${s.count})`).join(' · ')}</p>
@@ -219,21 +224,21 @@ export function EditionPage() {
       <nav className="mt-12 grid grid-cols-2 gap-4 border-t-2 border-rule-strong pt-4 font-sans text-[13px]" aria-label="Edition navigation">
         <div>
           {older && (
-            <Link to={`/edition/${older.region}/${older.date}`} className="group inline-flex items-start gap-1 text-ink-2 hover:text-ink">
+            <Link to={`/${route}/${older.region}/${older.date}`} className="group inline-flex items-start gap-1 text-ink-2 hover:text-ink">
               <ChevronLeft size={16} className="mt-0.5" aria-hidden="true" />
               <span>
                 <span className="block text-muted">Previous</span>
-                {formatDateLong(older.date)}
+                {when(older)}
               </span>
             </Link>
           )}
         </div>
         <div className="text-right">
           {newer && (
-            <Link to={`/edition/${newer.region}/${newer.date}`} className="group inline-flex items-start gap-1 text-ink-2 hover:text-ink">
+            <Link to={`/${route}/${newer.region}/${newer.date}`} className="group inline-flex items-start gap-1 text-ink-2 hover:text-ink">
               <span>
                 <span className="block text-muted">Next</span>
-                {formatDateLong(newer.date)}
+                {when(newer)}
               </span>
               <ChevronRight size={16} className="mt-0.5" aria-hidden="true" />
             </Link>

@@ -83,7 +83,11 @@ export interface EditionSection {
 
 export interface Edition {
   region: Region;
+  /** 'daily' editions are keyed by date; 'weekly' reports by the Monday that starts the week. */
+  kind?: 'daily' | 'weekly';
   date: string;
+  /** Last day covered (weekly reports only). */
+  periodEnd?: string;
   number: number;
   title: string;
   generatedAt: string;
@@ -104,6 +108,7 @@ export interface Edition {
 export interface EditionIndexEntry {
   region: Region;
   date: string;
+  periodEnd?: string;
   number: number;
   title: string;
   headline: string | null;

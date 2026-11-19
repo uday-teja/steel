@@ -94,7 +94,8 @@ ${material}
       .map((a) => `<article id="${a.id}" publisher="${a.publisher}" categories="${a.categories.join(',')}" geo="${a.geo.join(',')}" importance="${a.importance}">\n<headline>${a.title}</headline>\n<summary>${a.summary}</summary>\n</article>`)
       .join('\n');
     const sections = input.sections.map((s) => `- ${s.id} "${s.title}": ${s.articleIds.join(', ') || '(no articles)'}`).join('\n');
-    const user = `Write the SteelScope ${regionName} for ${input.date}.
+    const what = input.period ? `weekly report ("The Week in Steel") of the ${regionName} covering ${input.period.from} to ${input.period.to}. Synthesise the week's main themes rather than listing stories one by one` : `${regionName} for ${input.date}`;
+    const user = `Write the SteelScope ${what}.
 
 You receive the day's articles (with SteelScope summaries derived from publisher excerpts) and the edition sections with their assigned article ids. Write only about these articles.
 

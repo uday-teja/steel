@@ -18,6 +18,7 @@ export function App() {
         <Route path="/article/:slug" element={<ArticlePage />} />
         <Route path="/edition/:region" element={<LatestEditionRedirect />} />
         <Route path="/edition/:region/:date" element={<EditionPage />} />
+        <Route path="/weekly/:region/:date" element={<EditionPage kind="weekly" />} />
         <Route path="/editions" element={<EditionsPage />} />
         <Route path="/category/:id" element={<CategoryPage />} />
         <Route path="/markets" element={<MarketsPage />} />

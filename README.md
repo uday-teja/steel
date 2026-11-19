@@ -42,6 +42,7 @@ npm run pipeline          # collect news into ./data (needs internet; AI if ANTH
 npm run dev               # http://localhost:5173/steel/
 npm run build             # dist/: pre-rendered pages, share cards, sitemap, feed
 npm run typecheck
+npm test                  # unit tests + end-to-end pipeline test on fictional fixture feeds
 ```
 
 `npm run pipeline -- --data-dir /tmp/test --fixtures path/to/xml` runs the pipeline against local

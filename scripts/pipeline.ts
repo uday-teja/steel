@@ -12,7 +12,7 @@ import { COMPANIES } from '../src/lib/taxonomy';
 import type { Article, Region, RunReport, SiteMeta } from '../src/types/news';
 import { Deduper } from './deduplication/dedupe';
 import { collect, type RawItem, type SourceConfig } from './ingestion/feeds';
-import { canonicalUrl, istDate, log, mapLimit, readJson, sha1, slugify, truncate } from './lib/util';
+import { canonicalUrl, istDate, previousWeek, log, mapLimit, readJson, sha1, slugify, truncate } from './lib/util';
 import { classifyCategories, classifyRegion, detectCompanies, geoTags, heuristicImportance, isRelevant } from './processing/classify';
 import { buildEdition } from './publishing/editions';
 import { pruneEditions, writeEditionIndex, writeIndexes, writeMarket } from './publishing/indexes';
@@ -252,11 +252,33 @@ async function main(): Promise<void> {
     log('edition', `${region} ${editionDate}: ${edition.articleCount} articles, #${edition.number}`);
   }
 
+  // ------------------------------------------------------------ weekly reports
+  // After each week ends (Mon–Sun, IST), publish one "Week in Steel" report per region, once.
+  const { from: weekFrom, to: weekTo } = previousWeek(editionDate);
+  const weeklyBefore = await store.listEditionFiles('weekly');
+  for (const region of ['india', 'world'] as Region[]) {
+    if (weeklyBefore.some((w) => w.region === region && w.date === weekFrom)) continue;
+    const weekArticles = all
+      .filter((a) => a.region === region && a.editionDate >= weekFrom && a.editionDate <= weekTo)
+      .sort((a, b) => b.importance - a.importance)
+      .slice(0, 60);
+    if (weekArticles.length < 3) continue;
+    const number = weeklyBefore.filter((w) => w.region === region).length + 1;
+    const { edition, aiError } = await buildEdition({ region, date: weekFrom, articles: weekArticles, previous: null, number, ai, now: nowIso, period: { from: weekFrom, to: weekTo } });
+    if (aiError) {
+      aiErrors++;
+      notes.push(`AI editorial for the ${region} weekly report failed; report published with publisher excerpts.`);
+    }
+    await store.saveEdition(edition);
+    log('weekly', `${region} ${weekFrom}…${weekTo}: ${edition.articleCount} articles, #${number}`);
+  }
+
   // ------------------------------------------------------------ indexes + retention
   const removed = await pruneEditions(store, site.retention.editionDays);
   if (removed) notes.push(`Retention removed ${removed} edition/day files.`);
   await writeIndexes(store, all, nowIso, site.retention.latestDays);
   const editionIndex = await writeEditionIndex(store, nowIso);
+  await writeEditionIndex(store, nowIso, 'weekly');
   await writeMarket(store, configDir, nowIso);
 
   // ------------------------------------------------------------ meta

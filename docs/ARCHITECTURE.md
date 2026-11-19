@@ -49,7 +49,8 @@ GitHub Actions does the collection and AI work, and GitHub Pages serves the resu
 | `daily-news.yml` | cron 00:07 & 10:07 UTC (05:37 & 15:37 IST), manual | calls `pipeline.yml` |
 | `manual-refresh.yml` | `workflow_dispatch`, `repository_dispatch: refresh-news` | calls `pipeline.yml` |
 | `pipeline.yml` | `workflow_call` | collect → process → commit `data/` → build → deploy |
-| `deploy.yml` | push to `main` (non-data) | typecheck → build → deploy |
+| `deploy.yml` | push to `main` (non-data) | typecheck → tests → build → deploy |
+| `ci.yml` | pull requests, other branches | typecheck → tests → build |
 
 All share the concurrency group `steelscope-publish`, so runs never overlap or race on `data/`.
 Failure handling: a failing source never fails the run (it is recorded in source health); if
@@ -99,6 +100,7 @@ config/            site.json · sources.json · market-indicators.json
 data/              generated, committed by the pipeline (served at /data)
   articles/        one JSON per story (retained 120 days)
   editions/        index.json · india/YYYY-MM-DD.json · world/YYYY-MM-DD.json (2 years)
+  weekly/          index.json · india|world/<Monday>.json — weekly reports (2 years)
   days/            per-day story index (2 years)
   categories/      per-category feeds
   indexes/         companies.json · dates.json
@@ -146,4 +148,6 @@ refresh-proxy/     optional Cloudflare Worker for the public Refresh button
 | 5 | Actions workflows, Pages deploy, manual refresh relay | Done |
 | 6 | First live runs: verify each feed, tune relevance keywords and source list | Next (needs live network) |
 | 7 | Licensed price feed integration into `data/market/observations.json` | Needs a data licence |
-| 8 | Weekly reports, company pages with more context, email/WhatsApp digest | Future |
+| 8 | Weekly reports (“The Week in Steel”, India and World, published after each Mon–Sun week) | Done |
+| 9 | Unit + end-to-end pipeline tests in CI | Done |
+| 10 | Company pages with more context, email/WhatsApp digest | Future |

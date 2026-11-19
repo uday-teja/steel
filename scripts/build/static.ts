@@ -140,6 +140,22 @@ async function main(): Promise<void> {
       lastmod: e.updatedAt,
     });
   }
+  const weeklyIndex = tryData<EditionIndex>('weekly/index.json');
+  for (const w of weeklyIndex?.editions ?? []) {
+    const ed = tryData<Edition>(`weekly/${w.region}/${w.date}.json`);
+    routes.push({
+      route: `/weekly/${w.region}/${w.date}`,
+      head: {
+        title: `${REGION_LABEL[w.region]} Weekly Report, week of ${longDate(w.date)}: ${w.title} | ${site.name}`,
+        description: ed?.intro.slice(0, 200) ?? `${w.articleCount} steel industry developments this week.`,
+        image: `${SITE_URL}/share/edition/weekly-${w.region}-${w.date}.png`,
+        type: 'article',
+        published: ed?.generatedAt,
+        modified: ed?.updatedAt,
+      },
+      lastmod: w.updatedAt,
+    });
+  }
   for (const a of articles) {
     routes.push({
       route: `/article/${a.slug}`,
@@ -234,6 +250,23 @@ async function main(): Promise<void> {
       footer: domain,
     });
     await fs.writeFile(path.join(shareDir, 'edition', `${e.region}-${e.date}.png`), renderPng(svg, fonts));
+    cards++;
+  }
+
+  for (const w of weeklyIndex?.editions ?? []) {
+    if (w.date < cardCutoff.slice(0, 10)) continue;
+    const ed = tryData<Edition>(`weekly/${w.region}/${w.date}.json`);
+    if (!ed) continue;
+    const svg = cardSvg({
+      seed: `weekly-${w.region}-${w.date}`,
+      category: ed.featured?.primaryCategory ?? 'market-analysis',
+      region: w.region,
+      kicker: `The Week in Steel · ${REGION_LABEL[w.region]} · Week of ${longDate(w.date)}`,
+      title: ed.title,
+      summary: `${ed.articleCount} developments from ${ed.sources.length} publishers.`,
+      footer: domain,
+    });
+    await fs.writeFile(path.join(shareDir, 'edition', `weekly-${w.region}-${w.date}.png`), renderPng(svg, fonts));
     cards++;
   }
 

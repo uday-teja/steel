@@ -10,7 +10,8 @@
     "build:ssr": "vite build --ssr src/entry-server.tsx --outDir dist-ssr",
     "build:static": "tsx scripts/build/static.ts",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "tsx --test tests/*.test.ts"
   },
   "repository": {
     "type": "git",

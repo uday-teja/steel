@@ -3,6 +3,8 @@ import path from 'node:path';
 import type { Article, ArticleCard, Edition } from '../../src/types/news';
 import { readJson, writeJson } from '../lib/util';
 
+export type ReportFolder = 'editions' | 'weekly';
+
 export class DataStore {
   constructor(readonly root: string) {}
 
@@ -30,18 +32,18 @@ export class DataStore {
     await fs.rm(this.p('articles', `${slug}.json`), { force: true });
   }
 
-  async loadEdition(region: string, date: string): Promise<Edition | null> {
-    return readJson<Edition | null>(this.p('editions', region, `${date}.json`), null);
+  async loadEdition(region: string, date: string, folder: ReportFolder = 'editions'): Promise<Edition | null> {
+    return readJson<Edition | null>(this.p(folder, region, `${date}.json`), null);
   }
 
   async saveEdition(e: Edition): Promise<void> {
-    await writeJson(this.p('editions', e.region, `${e.date}.json`), e);
+    await writeJson(this.p(e.kind === 'weekly' ? 'weekly' : 'editions', e.region, `${e.date}.json`), e);
   }
 
-  async listEditionFiles(): Promise<{ region: string; date: string }[]> {
+  async listEditionFiles(folder: ReportFolder = 'editions'): Promise<{ region: string; date: string }[]> {
     const out: { region: string; date: string }[] = [];
     for (const region of ['india', 'world']) {
-      const files = await fs.readdir(this.p('editions', region)).catch(() => [] as string[]);
+      const files = await fs.readdir(this.p(folder, region)).catch(() => [] as string[]);
       for (const f of files) if (/^\d{4}-\d{2}-\d{2}\.json$/.test(f)) out.push({ region, date: f.slice(0, 10) });
     }
     return out;

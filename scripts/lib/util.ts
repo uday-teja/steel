@@ -110,3 +110,12 @@ export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T, i:
 export function hoursBetween(a: string | Date, b: string | Date): number {
   return Math.abs(new Date(a).getTime() - new Date(b).getTime()) / 36e5;
 }
+
+/** Monday–Sunday (IST dates) of the week before the one containing `date`. */
+export function previousWeek(date: string): { from: string; to: string } {
+  const d = new Date(`${date}T00:00:00Z`);
+  const dow = (d.getUTCDay() + 6) % 7; // Monday = 0
+  const monday = new Date(d.getTime() - (dow + 7) * 864e5);
+  const sunday = new Date(monday.getTime() + 6 * 864e5);
+  return { from: monday.toISOString().slice(0, 10), to: sunday.toISOString().slice(0, 10) };
+}
