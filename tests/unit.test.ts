@@ -70,3 +70,11 @@ test('numeric guard catches small invented percentages and amounts', () => {
   assert.equal(guardText('Prices fell $5 per tonne.', 'Prices fell').removed, 1);
   assert.equal(guardText('The top 10 mills agreed.', 'Mills agreed').removed, 0);
 });
+
+test('company-aware dedupe merges rewrites of the same company story', () => {
+  const d = new Deduper(0.72, detectCompanies);
+  d.add({ title: "Tata Steel plans 10-tonne hydrogen production facility in Odisha's Kalinganagar", url: 'https://a.com/1' });
+  assert.ok(d.isDuplicate({ title: 'Tata Steel Starts 10-Tonne Hydrogen Plant Project for Green Steel', url: 'https://b.com/2' }));
+  assert.ok(!d.isDuplicate({ title: 'JSW Steel starts 10-tonne hydrogen plant project', url: 'https://b.com/3' }));
+  assert.ok(!d.isDuplicate({ title: 'Tata Steel reports quarterly results with lower margins', url: 'https://b.com/4' }));
+});

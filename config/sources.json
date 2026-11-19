@@ -11,9 +11,9 @@
       "focus": "general",
       "tier": 1,
       "access": "official-rss",
-      "enabled": true,
+      "enabled": false,
       "verified": false,
-      "notes": "Official Government of India press releases, including Ministry of Steel announcements. Feed covers all ministries; the relevance filter keeps steel-related releases."
+      "notes": "Disabled: pib.gov.in returns HTTP 403 to automated clients (first live run, Nov 2026). Ministry of Steel announcements are covered via the policy discovery feed."
     },
     {
       "id": "et-metals-mining",
@@ -24,9 +24,9 @@
       "focus": "metals",
       "tier": 1,
       "access": "public-rss",
-      "enabled": true,
+      "enabled": false,
       "verified": false,
-      "notes": "Public RSS for the Metals & Mining section. ET RSS is offered for personal/feed-reader use; headlines + links only."
+      "notes": "Disabled: feed URL returned no items on the first live run; confirm the feed ID at economictimes.indiatimes.com/rss.cms."
     },
     {
       "id": "et-steel",
@@ -37,9 +37,9 @@
       "focus": "steel",
       "tier": 1,
       "access": "public-rss",
-      "enabled": true,
+      "enabled": false,
       "verified": false,
-      "notes": "Steel section RSS. Feed ID to be confirmed on first run (see source health)."
+      "notes": "Disabled: feed URL returned no items on the first live run; the correct ET steel feed ID needs confirming at economictimes.indiatimes.com/rss.cms. ET stories still arrive via discovery feeds."
     },
     {
       "id": "bs-companies",
@@ -50,9 +50,9 @@
       "focus": "business",
       "tier": 1,
       "access": "public-rss",
-      "enabled": true,
+      "enabled": false,
       "verified": false,
-      "notes": "Public RSS. Many full articles are paywalled; SteelScope uses only feed metadata and links out."
+      "notes": "Disabled: the feed returns HTTP 403 to automated clients (first live run, Nov 2026). Business Standard stories still arrive via discovery feeds with attribution."
     },
     {
       "id": "bs-industry",
@@ -63,9 +63,9 @@
       "focus": "business",
       "tier": 1,
       "access": "public-rss",
-      "enabled": true,
+      "enabled": false,
       "verified": false,
-      "notes": "Public RSS; feed metadata only."
+      "notes": "Disabled: the feed returns HTTP 403 to automated clients (first live run, Nov 2026)."
     },
     {
       "id": "hbl-companies",
@@ -77,7 +77,7 @@
       "tier": 1,
       "access": "public-rss",
       "enabled": true,
-      "verified": false,
+      "verified": true,
       "notes": "Public section RSS."
     },
     {
@@ -90,7 +90,7 @@
       "tier": 2,
       "access": "public-rss",
       "enabled": true,
-      "verified": false,
+      "verified": true,
       "notes": "Public section RSS (policy, trade, commodities)."
     },
     {
@@ -103,7 +103,7 @@
       "tier": 2,
       "access": "public-rss",
       "enabled": true,
-      "verified": false,
+      "verified": true,
       "notes": "Public RSS."
     },
     {
@@ -115,9 +115,9 @@
       "focus": "metals",
       "tier": 2,
       "access": "public-rss",
-      "enabled": true,
+      "enabled": false,
       "verified": false,
-      "notes": "Public WordPress feed; strong iron ore / coking coal / steel coverage."
+      "notes": "Disabled: the feed returns HTTP 403 to automated clients (first live run, Nov 2026). Re-enable only with permission."
     },
     {
       "id": "worldsteel",
@@ -129,7 +129,7 @@
       "tier": 1,
       "access": "official-rss",
       "enabled": true,
-      "verified": false,
+      "verified": true,
       "notes": "Official industry body. Monthly production statistics and short-range outlooks."
     },
     {
@@ -142,7 +142,7 @@
       "tier": 2,
       "access": "aggregator-rss",
       "enabled": true,
-      "verified": false,
+      "verified": true,
       "notes": "Discovery feed. Each item is attributed to the original publisher via the feed's <source> element and links to that publisher's article. Review Google News terms before commercial use."
     },
     {
@@ -155,7 +155,7 @@
       "tier": 2,
       "access": "aggregator-rss",
       "enabled": true,
-      "verified": false,
+      "verified": true,
       "notes": "Discovery feed for company announcements and results."
     },
     {
@@ -168,7 +168,7 @@
       "tier": 2,
       "access": "aggregator-rss",
       "enabled": true,
-      "verified": false,
+      "verified": true,
       "notes": "Discovery feed for policy, BIS standards and trade remedies."
     },
     {
@@ -181,7 +181,7 @@
       "tier": 2,
       "access": "aggregator-rss",
       "enabled": true,
-      "verified": false,
+      "verified": true,
       "notes": "Discovery feed for raw materials and product markets."
     },
     {
@@ -194,7 +194,7 @@
       "tier": 2,
       "access": "aggregator-rss",
       "enabled": true,
-      "verified": false,
+      "verified": true,
       "notes": "Discovery feed for global coverage."
     },
     {
@@ -207,7 +207,7 @@
       "tier": 2,
       "access": "aggregator-rss",
       "enabled": true,
-      "verified": false,
+      "verified": true,
       "notes": "Discovery feed for the three largest markets outside India."
     },
     {
@@ -220,8 +220,34 @@
       "tier": 2,
       "access": "aggregator-rss",
       "enabled": true,
-      "verified": false,
+      "verified": true,
       "notes": "Discovery feed for decarbonisation and commodity coverage."
+    },
+    {
+      "id": "gn-world-asia-mideast",
+      "name": "Google News: Japan, Korea and Middle East steel",
+      "homepage": "https://news.google.com/",
+      "feedUrl": "https://news.google.com/rss/search?q=(%22Nippon+Steel%22+OR+POSCO+OR+%22JFE+Steel%22+OR+%22Hyundai+Steel%22+OR+%22Emirates+Steel%22+OR+Hadeed+OR+%22Saudi+steel%22)+when:2d&hl=en-US&gl=US&ceid=US:en",
+      "regionHint": "world",
+      "focus": "discovery",
+      "tier": 2,
+      "access": "aggregator-rss",
+      "enabled": true,
+      "verified": false,
+      "notes": "Discovery feed for Japan, South Korea and the Middle East."
+    },
+    {
+      "id": "gn-world-prices-trade",
+      "name": "Google News: global steel prices and trade",
+      "homepage": "https://news.google.com/",
+      "feedUrl": "https://news.google.com/rss/search?q=(%22steel+tariffs%22+OR+%22HRC+price%22+OR+%22rebar+price%22+OR+%22steel+exports%22+OR+%22steel+imports%22+OR+%22iron+ore+futures%22)+-India+when:2d&hl=en-US&gl=US&ceid=US:en",
+      "regionHint": "world",
+      "focus": "discovery",
+      "tier": 2,
+      "access": "aggregator-rss",
+      "enabled": true,
+      "verified": false,
+      "notes": "Discovery feed for global prices and trade measures."
     },
     {
       "id": "steelorbis",

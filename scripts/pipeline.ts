@@ -37,7 +37,7 @@ async function main(): Promise<void> {
   const trigger = arg('trigger', process.env.PIPELINE_TRIGGER || 'local')!;
   const dataDir = path.resolve(ROOT, arg('data-dir', process.env.DATA_DIR || 'data')!);
   const fixtures = arg('fixtures');
-  const maxNew = Number(arg('max-new', '60'));
+  const maxNew = Number(arg('max-new', '80'));
   const configDir = path.join(ROOT, 'config');
 
   const site = await readJson<SiteConfig>(path.join(configDir, 'site.json'), { retention: { articleDays: 120, editionDays: 730, latestDays: 7 } });
@@ -54,7 +54,7 @@ async function main(): Promise<void> {
   existing = existing.filter((a) => a.collectedAt >= articleCutoff);
   if (expired.length) notes.push(`Retention removed ${expired.length} article pages older than ${site.retention.articleDays} days.`);
 
-  const deduper = new Deduper();
+  const deduper = new Deduper(0.72, detectCompanies);
   const recentCutoff = new Date(Date.now() - 21 * 864e5).toISOString();
   deduper.seed(existing.filter((a) => a.collectedAt >= recentCutoff));
   const knownUrls = new Set(existing.map((a) => canonicalUrl(a.url)));
@@ -119,9 +119,15 @@ async function main(): Promise<void> {
     });
   }
 
+  // Per-region quota so one region's volume never crowds out the other.
   candidates.sort((a, b) => b.article.importance - a.article.importance);
-  const selected = candidates.slice(0, maxNew);
-  if (candidates.length > maxNew) notes.push(`${candidates.length - maxNew} lower-ranked stories skipped (per-run cap ${maxNew}).`);
+  const perRegion = Math.ceil(maxNew / 2);
+  const india = candidates.filter((c) => c.article.region === 'india');
+  const world = candidates.filter((c) => c.article.region === 'world');
+  const takeIndia = Math.min(india.length, Math.max(perRegion, maxNew - Math.min(world.length, perRegion)));
+  const takeWorld = Math.min(world.length, maxNew - takeIndia);
+  const selected = [...india.slice(0, takeIndia), ...world.slice(0, takeWorld)];
+  if (candidates.length > selected.length) notes.push(`${candidates.length - selected.length} lower-ranked stories skipped (per-run cap ${maxNew}, split between India and World).`);
   log('pipeline', `${items.length} items collected, ${candidates.length} new relevant, ${selected.length} selected`);
 
   // ------------------------------------------------------------ AI enrichment
