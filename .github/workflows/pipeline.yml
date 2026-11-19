@@ -1,3 +1,4 @@
+# Shared by daily-news.yml and manual-refresh.yml.
 # Reusable pipeline: collect → process → commit data → build static site → deploy to GitHub Pages.
 # Called by daily-news.yml (schedule) and manual-refresh.yml (on demand).
 name: News pipeline

@@ -1,4 +1,4 @@
-# On-demand refresh. Triggered by:
+# On-demand news refresh. Triggered by:
 #  - the maintainer from the GitHub Actions tab ("Run workflow"), or
 #  - the optional refresh relay (refresh-proxy/) behind the website's Refresh button,
 #    which calls workflow_dispatch with a token stored only in the relay.
