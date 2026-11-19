@@ -4,7 +4,7 @@ import { EmptyState, LoadingBlock, SectionHeader, useDocumentTitle } from '../co
 import { ShareBar } from '../components/ShareBar';
 import { AiMark, Kicker, StoryItem } from '../components/Story';
 import { useData } from '../lib/data';
-import { formatDateLong, formatDateTime, formatTime } from '../lib/format';
+import { formatDateLong, formatDateTime } from '../lib/format';
 import { absoluteUrl, shareImageUrl } from '../lib/site';
 import { CATEGORY_MAP, COMPANY_BY_NAME, GEO_LABEL } from '../lib/taxonomy';
 import type { Article } from '../types/news';
@@ -123,14 +123,14 @@ export function ArticlePage() {
         {a.publisherExcerpt && (
           <Block title={`From ${a.publisher}`}>
             <blockquote className="border-l border-rule pl-5 font-serif text-[18px] italic leading-[1.6] text-ink-2">“{a.publisherExcerpt}”</blockquote>
-            <p className="meta mt-2">Excerpt as published in {a.publisher}’s feed.</p>
+            <p className="meta mt-2">From the publisher’s feed.</p>
           </Block>
         )}
 
         {!hasAi && !a.publisherExcerpt && (
           <div className="mt-8 flex gap-3 border border-rule bg-paper-2 p-4 font-sans text-[14px] leading-relaxed text-ink-2">
             <Info size={18} className="mt-0.5 shrink-0 text-muted" aria-hidden="true" />
-            <p>The publisher's feed provided a headline only, and no AI summary is available for this story. Read the full report at the source.</p>
+            <p>Headline only. Read the full story at the source.</p>
           </div>
         )}
 
@@ -162,20 +162,14 @@ export function ArticlePage() {
               ))}
           </div>
           <p className="meta leading-relaxed">
-            {a.ai ? (
-              <>
-                AI-generated text above was written by {a.ai.model} ({a.ai.provider}) at {formatTime(a.ai.generatedAt)} on {formatDateLong(a.ai.generatedAt)}, using only the publisher's headline and excerpt. It may contain errors and is not a substitute for the original reporting. Figures not present in the source material are automatically removed.
-              </>
-            ) : (
-              <>This story was collected automatically from {a.publisher}'s public feed. No AI-generated text appears on this page.</>
-            )}
+            {a.ai ? 'AI summary based on the publisher’s headline and excerpt. May contain errors.' : `Source: ${a.publisher}.`}
           </p>
         </div>
       </div>
 
       {a.related.length > 0 && (
         <section className="mt-14" aria-labelledby="related-h">
-          <SectionHeader id="related-h" title="Related coverage" heavy />
+          <SectionHeader id="related-h" title="Related" heavy />
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {a.related.map((r) => (
               <StoryItem key={r.id} card={r} image />

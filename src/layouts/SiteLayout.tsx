@@ -218,7 +218,7 @@ function Footer({ meta }: { meta?: SiteMeta }) {
           </ul>
         </div>
         <p className="mt-6 font-sans text-[13px] leading-relaxed text-muted">
-          Headlines and excerpts belong to their publishers. Every story links to its original source. AI-assisted summaries may contain errors. SteelScope never estimates prices.
+          Headlines belong to their publishers. AI summaries may contain errors.
         </p>
         <div className="mt-4 flex flex-col gap-1 font-sans text-[12px] text-muted sm:flex-row sm:justify-between">
           <span>© {new Date(meta?.generatedAt ?? '2026-01-01').getFullYear()} {SITE.name}</span>

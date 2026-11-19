@@ -266,7 +266,7 @@ function PhaseText({ phase, endpoint }: { phase: Phase; endpoint: boolean }) {
     case 'waiting-run':
       return <p className={cls}>Request accepted. Waiting for GitHub Actions to start the refresh run…</p>;
     case 'running':
-      return <p className={cls}>Collecting and processing news ({phase.run.status === 'queued' ? 'queued' : 'in progress'}). This usually takes 3–8 minutes. You can leave this page open.</p>;
+      return <p className={cls}>Refreshing… usually takes a few minutes.</p>;
     case 'publishing':
       return <p className={cls}>Processing finished. Waiting for the new data to go live on the site…</p>;
     case 'published':
@@ -283,7 +283,7 @@ function PhaseText({ phase, endpoint }: { phase: Phase; endpoint: boolean }) {
         </p>
       );
     case 'cooldown':
-      return <p className={cls}>News was refreshed recently. To avoid unnecessary load on publishers, manual refreshes are limited to one every {SITE.refresh.cooldownMinutes} minutes.</p>;
+      return <p className={cls}>Refreshed recently. Try again in a few minutes.</p>;
     case 'timeout':
       return (
         <p className={cls}>
@@ -297,10 +297,10 @@ function PhaseText({ phase, endpoint }: { phase: Phase; endpoint: boolean }) {
       );
     default:
       return endpoint ? (
-        <p className={cls}>Collect newly published stories now instead of waiting for the next scheduled update (about 05:40 and 15:40 IST daily). The page reports progress and confirms only once new data is live.</p>
+        <p className={cls}>Fetch the latest stories now. Updates also run daily at about 05:40 and 15:40 IST.</p>
       ) : (
         <p className={cls}>
-          News updates automatically twice a day (about 05:40 and 15:40 IST). A one-click public refresh needs a small secure relay that has not been configured for this site, so the maintainer can run the refresh workflow from GitHub. Progress of any run appears below.
+          Updates run daily at about 05:40 and 15:40 IST. Manual refresh is run by the maintainer on GitHub.
         </p>
       );
   }
