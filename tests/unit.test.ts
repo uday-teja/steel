@@ -78,3 +78,10 @@ test('company-aware dedupe merges rewrites of the same company story', () => {
   assert.ok(!d.isDuplicate({ title: 'JSW Steel starts 10-tonne hydrogen plant project', url: 'https://b.com/3' }));
   assert.ok(!d.isDuplicate({ title: 'Tata Steel reports quarterly results with lower margins', url: 'https://b.com/4' }));
 });
+
+test('guard keeps domain names intact and titles lose wrapping brackets', async () => {
+  assert.equal(guardText('According to scanx.trade, JSW Steel grew. More text.', 'JSW Steel').text, 'According to scanx.trade, JSW Steel grew. More text.');
+  const { cleanTitle } = await import('../scripts/ingestion/feeds');
+  assert.equal(cleanTitle('[Tata Steel plans hydrogen project]'), 'Tata Steel plans hydrogen project');
+  assert.equal(cleanTitle('Steel (HRC) prices rise'), 'Steel (HRC) prices rise');
+});

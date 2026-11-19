@@ -160,7 +160,8 @@ async function main(): Promise<void> {
         const c = batch.find((b) => b.article.id === r.id);
         if (!c) continue;
         const a = c.article;
-        if (!r.relevant) {
+        // AI importance below 35 means tangential to steel (e.g. a steelmaker's lithium deal).
+        if (!r.relevant || r.importance < 35) {
           dropped.add(a.id);
           continue;
         }
@@ -188,8 +189,9 @@ async function main(): Promise<void> {
         const summary = guardText(r.summary, source).text;
         const dek = guardText(r.dek, source).text;
         a.summary = summary || null;
-        if (dek) {
-          a.dek = truncate(dek, 240);
+        const dekText = dek || (summary ? summary.split(/(?<=[.!?])\s+/)[0] : '');
+        if (dekText) {
+          a.dek = truncate(dekText, 240);
           a.aiSummary = true;
         }
         a.keyFacts = guardList(r.keyFacts, source).items.slice(0, 4);

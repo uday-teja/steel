@@ -27,7 +27,7 @@ function numbersIn(text: string): Set<string> {
 }
 
 export function splitSentences(text: string): string[] {
-  return text.match(/[^.!?]+(?:[.!?](?!\d)|$)+/g)?.map((s) => s.trim()).filter(Boolean) ?? [text];
+  return text.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
 }
 
 export interface GuardResult {

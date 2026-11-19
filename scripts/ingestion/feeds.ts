@@ -88,6 +88,7 @@ export function parseFeed(xml: string, source: SourceConfig): RawItem[] {
         }
       }
     }
+    title = cleanTitle(title);
     let description = stripHtml(text(it.description) || text(it['content:encoded']));
     // Aggregator descriptions usually repeat the headline + publisher; drop them.
     if (isAggregator) description = '';
@@ -112,7 +113,7 @@ export function parseFeed(xml: string, source: SourceConfig): RawItem[] {
     const links = asArray(e.link as any);
     const alt = links.find((l: any) => !l['@_rel'] || l['@_rel'] === 'alternate') ?? links[0];
     const link = typeof alt === 'string' ? alt : alt?.['@_href'] ?? '';
-    const title = stripHtml(text(e.title));
+    const title = cleanTitle(stripHtml(text(e.title)));
     if (!title || !link) continue;
     out.push({
       sourceId: source.id,
@@ -129,6 +130,12 @@ export function parseFeed(xml: string, source: SourceConfig): RawItem[] {
   }
 
   return out.map((i) => ({ ...i, publisher: i.publisher || hostnameLabel(i.url) || source.name }));
+}
+
+/** Remove wrapping brackets/quotes some aggregators add, e.g. "[Headline]". */
+export function cleanTitle(t: string): string {
+  const m = t.trim().match(/^[\[(“"'](.*)[\])”"']$/);
+  return (m ? m[1] : t).trim();
 }
 
 function normaliseDate(raw: string): string {
