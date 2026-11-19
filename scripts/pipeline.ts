@@ -15,6 +15,7 @@ import { collect, type RawItem, type SourceConfig } from './ingestion/feeds';
 import { canonicalUrl, istDate, previousWeek, log, mapLimit, readJson, sha1, slugify, truncate } from './lib/util';
 import { classifyCategories, classifyRegion, detectCompanies, geoTags, heuristicImportance, isRelevant } from './processing/classify';
 import { buildEdition } from './publishing/editions';
+import { fetchEquities } from './market/equities';
 import { fetchFreeMarketData } from './market/free-sources';
 import { pruneEditions, writeEditionIndex, writeIndexes, writeMarket } from './publishing/indexes';
 import { DataStore, toCard } from './publishing/store';
@@ -295,6 +296,15 @@ async function main(): Promise<void> {
     notes.push(`Free market data fetch failed: ${err instanceof Error ? err.message : err}`);
   }
   await writeMarket(store, configDir, nowIso);
+  if (!fixtures) {
+    try {
+      const eq = await fetchEquities(store, configDir);
+      log('equities', `${eq.ok} quotes updated, ${eq.failed} failed`);
+      if (eq.failed) notes.push(`${eq.failed} stock/futures quote(s) could not be updated; last known values kept.`);
+    } catch (err) {
+      notes.push(`Stock quotes failed: ${err instanceof Error ? err.message : err}`);
+    }
+  }
 
   // ------------------------------------------------------------ meta
   const prevMeta = await store.read<SiteMeta | null>('meta.json', null);

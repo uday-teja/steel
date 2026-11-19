@@ -202,3 +202,24 @@ export interface MarketData {
   note: string;
   indicators: MarketIndicator[];
 }
+
+export interface EquityQuote {
+  symbol: string;
+  name: string;
+  kind: 'stock' | 'index' | 'future';
+  unit?: string;
+  company?: string;
+  currency: string;
+  exchange: string;
+  price: number;
+  change: number;
+  changePct: number;
+  asOf: string;
+  history: { date: string; close: number }[];
+}
+
+export interface EquityData {
+  generatedAt: string;
+  source: { name: string; url: string };
+  groups: { id: string; title: string; items: EquityQuote[] }[];
+}

@@ -110,3 +110,25 @@ test('market: FRED CSV parsing and price form handling', async () => {
   assert.equal(applyForm({ source: 's', 'in-hrc': '1' }, [{ id: 'in-hrc', name: 'HR', unit: '' }], {}, '2026-11-19').date, '2026-11-19');
   assert.ok(applyForm({ date: '2030-01-01', source: 's', 'in-hrc': '1' }, [{ id: 'in-hrc', name: 'HR', unit: '' }], {}, '2026-11-19').errors.length);
 });
+
+test('equities: Yahoo chart parsing', async () => {
+  const { parseChart } = await import('../scripts/market/equities');
+  const day = (d: string) => Date.parse(`${d}T10:00:00Z`) / 1000;
+  const q = parseChart({
+    chart: {
+      result: [
+        {
+          meta: { currency: 'INR', exchangeName: 'NSI', regularMarketPrice: 162.5, regularMarketTime: day('2026-11-19') },
+          timestamp: [day('2026-11-17'), day('2026-11-18'), day('2026-11-19')],
+          indicators: { quote: [{ close: [150, 160, 162.5] }] },
+        },
+      ],
+    },
+  });
+  assert.ok(q);
+  assert.equal(q!.price, 162.5);
+  assert.equal(q!.change, 2.5);
+  assert.equal(q!.changePct, 1.56);
+  assert.equal(q!.history.length, 3);
+  assert.equal(parseChart({ chart: { result: [] } }), null);
+});

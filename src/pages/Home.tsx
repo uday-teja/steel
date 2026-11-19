@@ -1,13 +1,14 @@
 import { ArrowRight, ArrowUpRight, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ChangeBadge, rankCards } from '../components/Blocks';
 import { EmptyState, LoadingBlock, useDocumentTitle } from '../components/Common';
 import { articlePath } from '../components/Story';
 import { useData } from '../lib/data';
+import { Change } from './Static';
 import { formatDateLong, formatDateShort, formatNumber, formatTime } from '../lib/format';
 import { CATEGORIES, CATEGORY_MAP, REGION_LABEL } from '../lib/taxonomy';
-import type { ArticleCard, CategoryId, EditionIndex, EditionIndexEntry, LatestFeed, MarketData, Region, SiteMeta } from '../types/news';
+import type { ArticleCard, CategoryId, EditionIndex, EditionIndexEntry, EquityData, EquityQuote, LatestFeed, MarketData, Region, SiteMeta } from '../types/news';
 
 export function FirstRunNotice() {
   return (
@@ -201,41 +202,62 @@ function ExploreTopics() {
 
 function MarketNote() {
   const { data } = useData<MarketData>('market/indicators.json');
-  const live = (data?.indicators ?? []).filter((i) => i.status === 'available' && i.latest).slice(0, 5);
-  if (live.length) {
+  const { data: eq } = useData<EquityData>('market/equities.json');
+  const pick = ['^CNXMETAL', 'TATASTEEL.NS', 'JSWSTEEL.NS', 'SAIL.NS', 'HRC=F'];
+  const quotes = (eq?.groups ?? []).flatMap((g) => g.items);
+  const rows: { key: string; name: string; sub: string; value: string; change: ReactNode }[] = [
+    ...pick
+      .map((sym) => quotes.find((q) => q.symbol === sym))
+      .filter((q): q is EquityQuote => Boolean(q))
+      .map((q) => ({
+        key: q.symbol,
+        name: q.name.replace(' futures (CME)', ' futures'),
+        sub: q.kind === 'future' ? (q.unit ?? '') : q.kind === 'index' ? 'Index' : q.currency,
+        value: formatNumber(q.price, q.price < 1000 ? 2 : 0),
+        change: <Change value={q.change} pct={q.changePct} />,
+      })),
+    ...(data?.indicators ?? [])
+      .filter((i) => i.status === 'available' && i.latest)
+      .slice(0, 2)
+      .map((i) => ({
+        key: i.id,
+        name: i.name,
+        sub: `${i.unit} · ${formatDateShort(i.latest!.date)}`,
+        value: formatNumber(i.latest!.value, i.latest!.value < 1000 ? 2 : 0),
+        change: <ChangeBadge ind={i} />,
+      })),
+  ];
+  if (!rows.length) {
     return (
-      <section className="rounded-[6px] border border-rule-strong bg-surface p-6" aria-labelledby="snapshot-h">
-        <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">Market snapshot</p>
-        <ul className="mt-3">
-          {live.map((i) => (
-            <li key={i.id} className="flex items-baseline justify-between gap-3 border-b border-rule py-2.5 last:border-b-0">
-              <span className="min-w-0">
-                <span className="block font-sans text-[14px] font-medium text-ink">{i.name}</span>
-                <span className="font-sans text-[11px] text-muted">
-                  {i.unit} · {formatDateShort(i.latest!.date)}
-                </span>
-              </span>
-              <span className="shrink-0 text-right">
-                <span className="block font-serif text-[17px] font-medium tabular-nums">{formatNumber(i.latest!.value, i.latest!.value < 1000 ? 2 : 0)}</span>
-                <ChangeBadge ind={i} />
-              </span>
-            </li>
-          ))}
-        </ul>
-        <Link to="/markets" className="mt-3 inline-flex items-center gap-1 font-sans text-[13px] font-semibold text-accent hover:underline">
-          All market data <ArrowUpRight size={13} aria-hidden="true" />
-        </Link>
+      <section className="rounded-[6px] border border-rule-strong bg-surface p-6">
+        <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">Markets</p>
+        <p className="mt-2 font-sans text-[13px] text-muted">Market data appears after the next update.</p>
       </section>
     );
   }
   return (
-    <section className="rounded-[6px] border border-rule-strong bg-surface p-6">
-      <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">A note on market data</p>
-      <h2 className="mt-2 font-serif text-[18px] font-medium tracking-[-0.01em]">News now. Verified prices only.</h2>
-      <p className="mt-2 font-sans text-[13px] leading-[1.55] text-muted">Verified price data is not connected yet. SteelScope never estimates prices.</p>
-      <Link to="/markets" className="mt-4 inline-flex items-center gap-1 font-sans text-[13px] font-semibold text-accent hover:underline">
-        About market data <ArrowUpRight size={13} aria-hidden="true" />
+    <section className="rounded-[6px] border border-rule-strong bg-surface p-6" aria-labelledby="snapshot-h">
+      <p id="snapshot-h" className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">
+        Market snapshot
+      </p>
+      <ul className="mt-3">
+        {rows.map((r) => (
+          <li key={r.key} className="flex items-baseline justify-between gap-3 border-b border-rule py-2.5 last:border-b-0">
+            <span className="min-w-0">
+              <span className="block truncate font-sans text-[14px] font-medium text-ink">{r.name}</span>
+              <span className="font-sans text-[11px] text-muted">{r.sub}</span>
+            </span>
+            <span className="shrink-0 text-right">
+              <span className="block font-serif text-[16px] font-medium tabular-nums">{r.value}</span>
+              {r.change}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <Link to="/markets" className="mt-3 inline-flex items-center gap-1 font-sans text-[13px] font-semibold text-accent hover:underline">
+        All market data <ArrowUpRight size={13} aria-hidden="true" />
       </Link>
+      {eq && <p className="mt-2 font-sans text-[11px] text-muted">Delayed data. Not investment advice.</p>}
     </section>
   );
 }

@@ -8,114 +8,173 @@ import { HeadlineRow } from '../components/Story';
 import { useData } from '../lib/data';
 import { formatDateShort, formatDateTime, formatNumber } from '../lib/format';
 import { githubRepoUrl, SITE } from '../lib/site';
-import type { CategoryFeed, MarketData, MarketIndicator, SiteMeta } from '../types/news';
+import type { CategoryFeed, EquityData, EquityQuote, MarketData, MarketIndicator, SiteMeta } from '../types/news';
 
 const GROUPS: { id: MarketIndicator['group']; title: string }[] = [
   { id: 'india-flat', title: 'India · Flat products' },
   { id: 'india-long', title: 'India · Long products' },
-  { id: 'engineering', title: 'India · Engineering steels (MS, EN8, EN19, C45)' },
+  { id: 'engineering', title: 'India · Engineering steels' },
   { id: 'raw-materials', title: 'Raw materials' },
   { id: 'international', title: 'International benchmarks' },
 ];
 
-function Sparkline({ points }: { points: { value: number }[] }) {
+export function Sparkline({ points, className = 'h-7 w-24' }: { points: { value: number }[]; className?: string }) {
   if (points.length < 2) return null;
   const vals = points.map((p) => p.value);
   const min = Math.min(...vals);
   const max = Math.max(...vals);
   const d = vals.map((v, i) => `${(i / (vals.length - 1)) * 100},${max === min ? 15 : 28 - ((v - min) / (max - min)) * 26}`).join(' ');
   return (
-    <svg viewBox="0 0 100 30" className="h-7 w-24" preserveAspectRatio="none" aria-hidden="true">
+    <svg viewBox="0 0 100 30" className={className} preserveAspectRatio="none" aria-hidden="true">
       <polyline points={d} fill="none" stroke="currentColor" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
     </svg>
+  );
+}
+
+const money = (v: number) => formatNumber(v, v < 1000 ? 2 : 0);
+
+export function Change({ value, pct }: { value: number; pct: number }) {
+  const tone = value > 0 ? 'text-positive' : value < 0 ? 'text-negative' : 'text-muted';
+  return (
+    <span className={`font-sans text-[13px] font-semibold tabular-nums ${tone}`}>
+      {value > 0 ? '+' : ''}
+      {pct.toFixed(2)}%
+    </span>
+  );
+}
+
+function EquityTable({ title, items }: { title: string; items: EquityQuote[] }) {
+  return (
+    <section className="mt-8">
+      <h2 className="border-b border-rule pb-2 font-serif text-[20px] font-medium tracking-[-0.015em]">{title}</h2>
+      <table className="w-full table-fixed border-collapse font-sans text-[14px]">
+        <thead>
+          <tr className="border-b border-rule text-left text-[11px] uppercase tracking-[0.08em] text-muted">
+            <th className="w-[44%] py-2 pr-2 font-semibold sm:w-[34%]">Name</th>
+            <th className="py-2 pr-2 text-right font-semibold">Price</th>
+            <th className="py-2 pr-2 text-right font-semibold">Day</th>
+            <th className="hidden py-2 pl-4 font-semibold sm:table-cell">3 months</th>
+            <th className="hidden py-2 text-right font-semibold md:table-cell">As of</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((q) => {
+            const up = q.history.length > 1 && q.history[q.history.length - 1].close >= q.history[0].close;
+            return (
+              <tr key={q.symbol} className="border-b border-rule">
+                <td className="py-3 pr-2">
+                  <p className="font-medium text-ink">{q.name}</p>
+                  <p className="meta">
+                    {q.kind === 'future' ? q.unit : q.symbol.replace(/\.(NS|T|KS)$/, '')}
+                    {q.exchange ? ` · ${q.exchange}` : ''}
+                  </p>
+                </td>
+                <td className="py-3 pr-2 text-right tabular-nums">
+                  <span className="font-medium">{money(q.price)}</span>
+                  <span className="meta block">{q.currency}</span>
+                </td>
+                <td className="py-3 pr-2 text-right">
+                  <Change value={q.change} pct={q.changePct} />
+                </td>
+                <td className={`hidden py-3 pl-4 sm:table-cell ${up ? 'text-positive' : 'text-negative'}`}>
+                  <Sparkline points={q.history.map((h) => ({ value: h.close }))} className="h-7 w-28" />
+                </td>
+                <td className="meta hidden py-3 text-right md:table-cell">{formatDateShort(q.asOf)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </section>
   );
 }
 
 export function MarketsPage() {
   useDocumentTitle('Steel markets');
   const { data, loading } = useData<MarketData>('market/indicators.json');
+  const eq = useData<EquityData>('market/equities.json');
   const news = useData<CategoryFeed>('categories/market-prices.json');
-  const priceNews = [...(news.data?.india ?? []), ...(news.data?.world ?? [])].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)).slice(0, 12);
-  const available = data?.indicators.filter((i) => i.status === 'available').length ?? 0;
+  const priceNews = [...(news.data?.india ?? []), ...(news.data?.world ?? [])].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)).slice(0, 10);
+  const available = (data?.indicators ?? []).filter((i) => i.status === 'available');
+  const awaiting = (data?.indicators ?? []).filter((i) => i.status !== 'available');
 
   return (
     <div className="pb-6">
-      <PageTitle eyebrow="Market Intelligence" title="Steel markets">
-        Domestic and international prices for flat, long and engineering steels and their raw materials — shown only when backed by a verified, legally usable source.
+      <PageTitle eyebrow="Market intelligence" title="Steel markets">
+        Steel stocks, futures and verified prices.
       </PageTitle>
 
-      {loading ? (
+      {loading || eq.loading ? (
         <LoadingBlock />
       ) : (
         <>
-          {available === 0 && (
-            <div className="mt-6 border-l-2 border-accent bg-paper-2 p-5">
-              <p className="font-serif text-[19px] font-medium">Verified price data is not connected yet</p>
-              <p className="mt-2 font-sans text-[14px] leading-relaxed text-ink-2">{data?.note}</p>
-            </div>
+          {eq.data?.groups.filter((g) => g.items.length).map((g) => <EquityTable key={g.id} title={g.title} items={g.items} />)}
+          {eq.data && (
+            <p className="meta mt-3">
+              Delayed data via{' '}
+              <a href={eq.data.source.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+                {eq.data.source.name}
+              </a>
+              . For information only, not investment advice.
+            </p>
           )}
-          {GROUPS.map((g) => {
-            const items = data?.indicators.filter((i) => i.group === g.id) ?? [];
-            if (!items.length) return null;
-            return (
-              <section key={g.id} className="mt-10">
-                <SectionHeader title={g.title} heavy />
-                <div className="overflow-hidden">
-                  <table className="w-full table-fixed border-collapse font-sans text-[14px]">
-                    <thead>
-                      <tr className="border-b border-rule text-left text-[11px] uppercase tracking-[0.08em] text-muted">
-                        <th className="w-[38%] py-2 pr-2 font-semibold sm:w-[28%]">Indicator</th>
-                        <th className="py-2 pr-2 text-right font-semibold">Latest</th>
-                        <th className="hidden py-2 pr-2 text-right font-semibold sm:table-cell">Previous</th>
-                        <th className="py-2 pr-2 text-right font-semibold">Change</th>
-                        <th className="hidden py-2 pr-2 font-semibold md:table-cell">Trend</th>
-                        <th className="hidden py-2 font-semibold lg:table-cell">Source · Updated</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {items.map((i) => (
-                        <tr key={i.id} className="border-b border-rule align-top">
-                          <td className="py-3 pr-2">
-                            <p className="font-serif text-[16px] font-medium">{i.name}</p>
-                            <p className="meta mt-0.5 hidden sm:block">{i.description}</p>
-                            <p className="meta mt-0.5">{i.unit}</p>
-                          </td>
-                          <td className="py-3 pr-2 text-right font-serif text-[17px] tabular-nums">{i.latest ? formatNumber(i.latest.value, i.latest.value < 1000 ? 2 : 0) : <span className="text-muted">—</span>}</td>
-                          <td className="hidden py-3 pr-2 text-right tabular-nums text-ink-2 sm:table-cell">{i.previous ? formatNumber(i.previous.value, i.previous.value < 1000 ? 2 : 0) : '—'}</td>
-                          <td className="py-3 pr-2 text-right">
-                            {i.status === 'available' ? <ChangeBadge ind={i} /> : <span className="meta">Unavailable</span>}
-                          </td>
-                          <td className="hidden py-3 pr-2 text-ink-2 md:table-cell">{i.history.length > 1 ? <Sparkline points={i.history} /> : <span className="meta">—</span>}</td>
-                          <td className="hidden py-3 lg:table-cell">
-                            {i.source?.url ? (
-                              <a href={i.source.url} target="_blank" rel="noopener noreferrer" className="meta hover:text-ink">
-                                {i.source.name} · {i.updatedAt ? formatDateShort(i.updatedAt) : ''}
-                              </a>
-                            ) : i.source ? (
-                              <span className="meta">
-                                {i.source.name} · {i.updatedAt ? formatDateShort(i.updatedAt) : ''}
-                              </span>
-                            ) : (
-                              <span className="meta">No verified source</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            );
-          })}
+
+          {available.length > 0 && (
+            <section className="mt-10">
+              <h2 className="border-b border-rule pb-2 font-serif text-[20px] font-medium tracking-[-0.015em]">Physical prices</h2>
+              <table className="w-full table-fixed border-collapse font-sans text-[14px]">
+                <thead>
+                  <tr className="border-b border-rule text-left text-[11px] uppercase tracking-[0.08em] text-muted">
+                    <th className="w-[44%] py-2 pr-2 font-semibold sm:w-[34%]">Indicator</th>
+                    <th className="py-2 pr-2 text-right font-semibold">Latest</th>
+                    <th className="py-2 pr-2 text-right font-semibold">Change</th>
+                    <th className="hidden py-2 pl-4 font-semibold sm:table-cell">Trend</th>
+                    <th className="hidden py-2 text-right font-semibold md:table-cell">Source</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {available.map((i) => (
+                    <tr key={i.id} className="border-b border-rule align-top">
+                      <td className="py-3 pr-2">
+                        <p className="font-medium">{i.name}</p>
+                        <p className="meta">
+                          {i.unit} · {GROUPS.find((g) => g.id === i.group)?.title}
+                        </p>
+                      </td>
+                      <td className="py-3 pr-2 text-right tabular-nums">
+                        <span className="font-medium">{money(i.latest!.value)}</span>
+                        <span className="meta block">{formatDateShort(i.latest!.date)}</span>
+                      </td>
+                      <td className="py-3 pr-2 text-right">
+                        <ChangeBadge ind={i} />
+                      </td>
+                      <td className="hidden py-3 pl-4 text-ink-2 sm:table-cell">{i.history.length > 1 ? <Sparkline points={i.history} className="h-7 w-28" /> : <span className="meta">—</span>}</td>
+                      <td className="meta hidden py-3 text-right md:table-cell">
+                        {i.source?.url ? (
+                          <a href={i.source.url} target="_blank" rel="noopener noreferrer" className="hover:text-ink">
+                            {i.source.name}
+                          </a>
+                        ) : (
+                          i.source?.name
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          )}
+
+          {awaiting.length > 0 && (
+            <p className="meta mt-4 leading-relaxed">
+              Awaiting verified prices: {awaiting.map((i) => i.name).join(', ')}.{' '}
+              <a href={`${githubRepoUrl}/issues/new?template=add-prices.yml`} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-ink">
+                Add prices
+              </a>
+            </p>
+          )}
         </>
       )}
-
-      <p className="meta mt-6">
-        Iron ore updates monthly from the IMF. Other prices are added by SteelScope from verified market sources.{' '}
-        <a href={`${githubRepoUrl}/issues/new?template=add-prices.yml`} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-ink">
-          Maintainers: add prices
-        </a>
-      </p>
 
       <section className="mt-12 max-w-3xl">
         <SectionHeader title="Price and market news" href="/category/market-prices" linkLabel="Market & Prices" heavy />

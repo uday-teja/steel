@@ -1,0 +1,40 @@
+{
+  "$comment": "Steel equities and futures shown on the Markets page. Symbols are Yahoo Finance symbols. Data is end-of-day/delayed and for information only.",
+  "source": { "name": "Yahoo Finance", "url": "https://finance.yahoo.com/" },
+  "groups": [
+    {
+      "id": "india",
+      "title": "Indian steel stocks",
+      "items": [
+        { "symbol": "^CNXMETAL", "name": "Nifty Metal", "kind": "index" },
+        { "symbol": "TATASTEEL.NS", "name": "Tata Steel", "company": "Tata Steel" },
+        { "symbol": "JSWSTEEL.NS", "name": "JSW Steel", "company": "JSW Steel" },
+        { "symbol": "SAIL.NS", "name": "SAIL", "company": "SAIL" },
+        { "symbol": "JINDALSTEL.NS", "name": "Jindal Steel", "company": "Jindal Steel" },
+        { "symbol": "JSL.NS", "name": "Jindal Stainless", "company": "Jindal Stainless" },
+        { "symbol": "NMDC.NS", "name": "NMDC", "company": "NMDC" },
+        { "symbol": "APLAPOLLO.NS", "name": "APL Apollo", "company": "APL Apollo" }
+      ]
+    },
+    {
+      "id": "world",
+      "title": "Global steel stocks",
+      "items": [
+        { "symbol": "MT", "name": "ArcelorMittal", "company": "ArcelorMittal" },
+        { "symbol": "NUE", "name": "Nucor", "company": "Nucor" },
+        { "symbol": "CLF", "name": "Cleveland-Cliffs", "company": "Cleveland-Cliffs" },
+        { "symbol": "STLD", "name": "Steel Dynamics", "company": "Steel Dynamics" },
+        { "symbol": "5401.T", "name": "Nippon Steel", "company": "Nippon Steel" },
+        { "symbol": "005490.KS", "name": "POSCO Holdings", "company": "POSCO" },
+        { "symbol": "VALE", "name": "Vale", "company": "Vale" }
+      ]
+    },
+    {
+      "id": "futures",
+      "title": "Steel futures",
+      "items": [
+        { "symbol": "HRC=F", "name": "US Midwest HRC futures (CME)", "kind": "future", "unit": "US$/short ton" }
+      ]
+    }
+  ]
+}
