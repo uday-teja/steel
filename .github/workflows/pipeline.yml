@@ -1,0 +1,78 @@
+# Reusable pipeline: collect → process → commit data → build static site → deploy to GitHub Pages.
+# Called by daily-news.yml (schedule) and manual-refresh.yml (on demand).
+name: News pipeline
+
+on:
+  workflow_call:
+    inputs:
+      trigger:
+        description: What started the run (scheduled | manual)
+        type: string
+        required: true
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  collect-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Collect, de-duplicate, classify and summarise news
+        env:
+          # Secrets stay server-side in Actions; nothing here reaches the website bundle.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AI_PROVIDER: ${{ vars.AI_PROVIDER }}
+          AI_MODEL: ${{ vars.AI_MODEL }}
+        run: npm run pipeline -- --trigger "${{ inputs.trigger }}"
+
+      - name: Commit updated data
+        run: |
+          git config user.name "steelscope-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "No data changes to commit."
+            exit 0
+          fi
+          git commit -q -m "data: ${{ inputs.trigger }} update $(date -u +%Y-%m-%dT%H:%MZ)"
+          for attempt in 1 2 3 4; do
+            if git push; then exit 0; fi
+            echo "Push rejected, rebasing (attempt $attempt)…"
+            sleep $((attempt * 5))
+            git pull --rebase --strategy-option=theirs
+          done
+          echo "::error::Could not push data after 4 attempts"
+          exit 1
+
+      - name: Build static site (pre-rendered pages, share cards, sitemap, feed)
+        env:
+          VITE_SITE_URL: ${{ vars.SITE_URL }}
+          SITE_BASE: ${{ vars.SITE_BASE }}
+          VITE_REFRESH_ENDPOINT: ${{ vars.REFRESH_ENDPOINT }}
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: collect-and-build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

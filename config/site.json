@@ -1,0 +1,24 @@
+{
+  "name": "SteelScope",
+  "tagline": "Intelligence for the Indian and global steel industry",
+  "description": "SteelScope is a daily digital newspaper covering the Indian and global steel industry: prices, raw materials, policy, trade, companies and green steel, with AI-assisted editorial summaries and full source attribution.",
+  "siteUrl": "https://uday-teja.github.io/steel",
+  "basePath": "/steel/",
+  "timezone": "Asia/Kolkata",
+  "github": {
+    "owner": "uday-teja",
+    "repo": "steel",
+    "refreshWorkflow": "manual-refresh.yml",
+    "dailyWorkflow": "daily-news.yml"
+  },
+  "refresh": {
+    "endpoint": "",
+    "cooldownMinutes": 20
+  },
+  "retention": {
+    "articleDays": 120,
+    "dayIndexDays": 730,
+    "editionDays": 730,
+    "latestDays": 7
+  }
+}

@@ -1,0 +1,24 @@
+name: Daily news
+
+on:
+  schedule:
+    # 00:07 UTC = 05:37 IST (morning editions) and 10:07 UTC = 15:37 IST (afternoon update).
+    - cron: '7 0 * * *'
+    - cron: '7 10 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: steelscope-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/pipeline.yml
+    with:
+      trigger: scheduled
+    secrets: inherit

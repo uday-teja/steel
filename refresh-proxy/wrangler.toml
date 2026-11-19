@@ -1,0 +1,12 @@
+name = "steelscope-refresh"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+GITHUB_OWNER = "uday-teja"
+GITHUB_REPO = "steel"
+WORKFLOW_FILE = "manual-refresh.yml"
+REF = "main"
+ALLOWED_ORIGIN = "https://uday-teja.github.io"
+COOLDOWN_MINUTES = "20"
+# GITHUB_TOKEN is a secret: `npx wrangler secret put GITHUB_TOKEN`

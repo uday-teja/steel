@@ -1,0 +1,54 @@
+{
+  "name": "steelscope",
+  "version": "1.0.0",
+  "description": "SteelScope - daily digital newspaper for the Indian and global steel industry",
+  "scripts": {
+    "dev": "vite",
+    "pipeline": "tsx scripts/pipeline.ts",
+    "build": "npm run build:client && npm run build:ssr && npm run build:static",
+    "build:client": "vite build",
+    "build:ssr": "vite build --ssr src/entry-server.tsx --outDir dist-ssr",
+    "build:static": "tsx scripts/build/static.ts",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uday-teja/steel.git"
+  },
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/uday-teja/steel/issues"
+  },
+  "homepage": "https://github.com/uday-teja/steel#readme",
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/newsreader": "^5.3.0",
+    "lucide-react": "^1.75.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^1.10.0",
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/newsreader": "^5.3.0",
+    "@resvg/resvg-js": "^2.6.2",
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/node": "^26.6.6",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^6.3.0",
+    "fast-xml-parser": "^5.12.1",
+    "tailwindcss": "^4.3.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "zod": "^4.6.7"
+  },
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  }
+}
