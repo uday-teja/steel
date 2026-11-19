@@ -1,11 +1,10 @@
-import { BarChart3, ChevronDown, Globe2, Home, Landmark, Menu, Moon, Newspaper, Search, Sun, X } from 'lucide-react';
+import { ArrowUpRight, Moon, Search, Sun } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useData } from '../lib/data';
 import { formatDateLong, formatTime } from '../lib/format';
-import { githubRepoUrl, SITE } from '../lib/site';
-import { CATEGORIES } from '../lib/taxonomy';
-import type { SiteMeta } from '../types/news';
+import { SITE } from '../lib/site';
+import type { EditionIndex, SiteMeta } from '../types/news';
 
 function toggleTheme() {
   const root = document.documentElement;
@@ -18,265 +17,216 @@ function toggleTheme() {
   }
 }
 
-function ThemeToggle() {
+function ThemeToggle({ className = '' }: { className?: string }) {
   return (
-    <button type="button" onClick={toggleTheme} className="inline-flex h-10 w-10 items-center justify-center text-ink-2 hover:text-ink" aria-label="Toggle dark mode">
-      <Moon size={18} strokeWidth={1.75} className="dark:hidden" aria-hidden="true" />
-      <Sun size={18} strokeWidth={1.75} className="hidden dark:block" aria-hidden="true" />
+    <button type="button" onClick={toggleTheme} className={`inline-flex h-10 w-10 items-center justify-center rounded-[4px] text-ink-2 hover:bg-paper-2 hover:text-ink ${className}`} aria-label="Toggle dark mode">
+      <Moon size={17} strokeWidth={1.75} className="dark:hidden" aria-hidden="true" />
+      <Sun size={17} strokeWidth={1.75} className="hidden dark:block" aria-hidden="true" />
     </button>
   );
 }
 
-function Wordmark({ className = '' }: { className?: string }) {
+export function Wordmark({ className = 'text-[24px] sm:text-[28px]', tagline = false }: { className?: string; tagline?: boolean }) {
   return (
-    <Link to="/" className={`inline-block leading-none ${className}`} aria-label={`${SITE.name} home`}>
-      <span className="font-serif font-bold tracking-[-0.02em] text-ink" style={{ fontVariationSettings: '"opsz" 72' }}>
-        Steel<span className="text-accent">Scope</span>
+    <Link to="/" className="inline-block leading-none" aria-label={`${SITE.name} home`}>
+      <span className={`font-serif font-semibold tracking-[-0.03em] text-ink ${className}`}>
+        SteelScope<span className="text-accent">•</span>
       </span>
+      {tagline && <span className="mt-1.5 block whitespace-nowrap font-sans text-[9px] font-medium uppercase tracking-[0.12em] text-muted sm:text-[11px] sm:tracking-[0.16em]">Intelligence for the steel industry</span>}
     </Link>
   );
 }
 
 const NAV = [
+  { to: '/', label: 'Overview', end: true },
   { to: '/india', label: 'India' },
   { to: '/world', label: 'World' },
   { to: '/markets', label: 'Markets' },
-  { to: '/editions', label: 'Editions' },
-  { to: '/latest', label: 'Latest' },
+  { to: '/editions', label: 'Daily editions' },
+  { to: '/archive', label: 'Archive' },
 ];
 
-/** Hide the sticky header while scrolling down; reveal it on any scroll up. */
-function useHideOnScroll(): boolean {
-  const [hidden, setHidden] = useState(false);
+function useEditionsLink(): string {
+  const { data } = useData<EditionIndex>('editions/index.json');
+  const india = data?.editions.find((e) => e.region === 'india');
+  return india ? `/edition/india/${india.date}` : '/editions';
+}
+
+/** Search looks like an input but opens the search page; ⌘K / Ctrl+K works anywhere. */
+function SearchBox({ className = '' }: { className?: string }) {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        navigate('/search');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navigate]);
+  return (
+    <Link to="/search" className={`flex h-11 items-center gap-2.5 rounded-[4px] border border-rule-strong bg-surface px-3.5 font-sans text-[13px] text-muted transition-colors hover:border-ink-2 ${className}`}>
+      <Search size={15} strokeWidth={1.75} aria-hidden="true" />
+      <span className="flex-1 truncate">Search news, companies or topics</span>
+      <kbd className="hidden font-sans text-[11px] text-muted sm:inline">⌘K</kbd>
+    </Link>
+  );
+}
+
+/** Compact bar that slides in when the reader scrolls back up past the masthead. */
+function useCompactBar(): boolean {
+  const [show, setShow] = useState(false);
   const last = useRef(0);
   useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY;
       const dy = y - last.current;
-      if (y < 80) setHidden(false);
-      else if (dy > 6) setHidden(true);
-      else if (dy < -6) setHidden(false);
+      if (y < 220) setShow(false);
+      else if (dy < -6) setShow(true);
+      else if (dy > 6) setShow(false);
       last.current = y;
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-  return hidden;
+  return show;
 }
 
-function SectionsDropdown() {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+function navClass(isActive: boolean, mobile = false): string {
+  const base = mobile ? 'block py-2.5 font-sans text-[14px]' : 'relative inline-block py-4 font-sans text-[14px]';
+  const active = mobile
+    ? 'font-semibold text-accent underline decoration-2 underline-offset-[10px]'
+    : "font-semibold text-accent after:absolute after:inset-x-0 after:bottom-0 after:h-[2px] after:bg-accent after:content-['']";
+  return `${base} ${isActive ? active : 'font-medium text-ink hover:text-accent'}`;
+}
+
+const SECTION_MATCH: Record<string, (p: string) => boolean> = {
+  '/editions': (p) => p.startsWith('/edition') || p.startsWith('/weekly'),
+  '/archive': (p) => p.startsWith('/archive') || p.startsWith('/company'),
+  '/latest': (p) => p.startsWith('/latest') || p.startsWith('/category'),
+};
+
+function Masthead() {
+  const editions = useEditionsLink();
   const { pathname } = useLocation();
-  useEffect(() => setOpen(false), [pathname]);
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
-    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
-    document.addEventListener('mousedown', close);
-    document.addEventListener('keydown', esc);
-    return () => {
-      document.removeEventListener('mousedown', close);
-      document.removeEventListener('keydown', esc);
-    };
-  }, [open]);
+  const on = (to: string, isActive: boolean) => isActive || (SECTION_MATCH[to]?.(pathname) ?? false);
+  const compact = useCompactBar();
   return (
-    <div ref={ref} className="relative">
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className={`inline-flex items-center gap-1 px-3 py-2 font-sans text-[14px] font-medium ${pathname.startsWith('/category') ? 'text-accent' : 'text-ink hover:text-accent'}`}>
-        Sections <ChevronDown size={14} className={`transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
-      </button>
-      {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-[440px] border border-rule-strong bg-paper p-2 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.25)]">
-          <ul className="grid grid-cols-2">
-            {CATEGORIES.map((c) => (
-              <li key={c.id}>
-                <Link to={`/category/${c.id}`} className="block px-3 py-2.5 hover:bg-paper-2">
-                  <span className="block font-sans text-[14px] font-semibold text-ink">{c.label}</span>
-                </Link>
+    <header className="no-print">
+      {/* Compact bar on scroll-up */}
+      <div className={`fixed inset-x-0 top-0 z-50 border-b border-rule bg-paper/95 backdrop-blur transition-transform duration-200 supports-[backdrop-filter]:bg-paper/85 ${compact ? 'translate-y-0' : '-translate-y-full'}`} aria-hidden={!compact}>
+        <div className="wrap flex h-14 items-center justify-between gap-4">
+          <Wordmark className="text-[22px]" />
+          <div className="flex items-center gap-2">
+            <Link to="/search" tabIndex={compact ? 0 : -1} className="inline-flex h-10 w-10 items-center justify-center rounded-[4px] text-ink-2 hover:bg-paper-2" aria-label="Search">
+              <Search size={18} strokeWidth={1.75} aria-hidden="true" />
+            </Link>
+            <Link to={editions} tabIndex={compact ? 0 : -1} className="btn-teal h-9 px-3.5 text-[12px]">
+              Editions <ArrowUpRight size={13} aria-hidden="true" />
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Top row */}
+      <div className="wrap flex items-center justify-between gap-6 py-5 sm:py-7">
+        <Wordmark tagline />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <SearchBox className="hidden w-[300px] md:flex" />
+          <Link to={editions} className="btn-teal h-10 sm:h-11">
+            <span className="hidden sm:inline">Today's editions</span>
+            <span className="sm:hidden">Editions</span>
+            <ArrowUpRight size={14} aria-hidden="true" />
+          </Link>
+          <span className="hidden md:block">
+            <ThemeToggle />
+          </span>
+        </div>
+      </div>
+      <div className="wrap pb-3 md:hidden">
+        <SearchBox />
+      </div>
+
+      {/* Navigation */}
+      <nav className="border-y border-rule" aria-label="Primary">
+        <div className="wrap">
+          <ul className="hidden items-center gap-7 md:flex">
+            {NAV.map((n) => (
+              <li key={n.to}>
+                <NavLink to={n.to} end={n.end} className={({ isActive }) => navClass(on(n.to, isActive))}>
+                  {n.label}
+                </NavLink>
+              </li>
+            ))}
+            <li className="ml-auto">
+              <Link to="/about" className="inline-flex items-center gap-1 font-sans text-[12px] text-muted hover:text-ink">
+                About SteelScope <ArrowUpRight size={12} aria-hidden="true" />
+              </Link>
+            </li>
+          </ul>
+          <ul className="grid grid-cols-3 gap-x-4 py-1.5 md:hidden">
+            {NAV.map((n) => (
+              <li key={n.to}>
+                <NavLink to={n.to} end={n.end} className={({ isActive }) => navClass(on(n.to, isActive), true)}>
+                  {n.label}
+                </NavLink>
               </li>
             ))}
           </ul>
-          <div className="mt-1 flex gap-4 border-t border-rule px-3 pb-1 pt-3 font-sans text-[13px] text-ink-2">
-            <Link to="/archive" className="hover:text-ink">Archive</Link>
-            <Link to="/about" className="hover:text-ink">About</Link>
-            <Link to="/status" className="hover:text-ink">Refresh status</Link>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function MobileMenu({ open, onClose, meta }: { open: boolean; onClose: () => void; meta?: SiteMeta }) {
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const esc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    document.addEventListener('keydown', esc);
-    return () => {
-      document.body.style.overflow = prev;
-      document.removeEventListener('keydown', esc);
-    };
-  }, [open, onClose]);
-  if (!open) return null;
-  const item = 'flex items-center justify-between border-b border-rule py-3.5 font-serif text-[20px] text-ink active:opacity-60';
-  return (
-    <div className="fixed inset-0 z-[60] overflow-y-auto bg-paper md:hidden" role="dialog" aria-modal="true" aria-label="Menu">
-      <div className="wrap flex h-12 items-center justify-between border-b border-rule">
-        <Wordmark className="text-[22px]" />
-        <button type="button" onClick={onClose} className="inline-flex h-10 w-10 items-center justify-center text-ink" aria-label="Close menu">
-          <X size={22} aria-hidden="true" />
-        </button>
-      </div>
-      <nav className="wrap pb-24 pt-2" aria-label="Menu">
-        <ul>
-          {[{ to: '/', label: 'Home' }, ...NAV, { to: '/archive', label: 'Archive' }].map((n) => (
-            <li key={n.to}>
-              <Link to={n.to} className={item}>
-                {n.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <p className="kicker mt-7 text-muted">Sections</p>
-        <ul className="mt-2 flex flex-wrap gap-2">
-          {CATEGORIES.map((c) => (
-            <li key={c.id}>
-              <Link to={`/category/${c.id}`} className="inline-block border border-rule px-3 py-2 font-sans text-[14px] text-ink-2 active:bg-paper-2">
-                {c.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-8 flex items-center justify-between border-t border-rule pt-4 font-sans text-[14px] text-ink-2">
-          <button type="button" onClick={toggleTheme} className="inline-flex items-center gap-2">
-            <Moon size={16} className="dark:hidden" aria-hidden="true" />
-            <Sun size={16} className="hidden dark:block" aria-hidden="true" />
-            <span className="dark:hidden">Dark mode</span>
-            <span className="hidden dark:inline">Light mode</span>
-          </button>
-          <Link to="/status">{meta?.lastSuccessfulRefresh ? `Updated ${formatTime(meta.lastSuccessfulRefresh)}` : 'Status'}</Link>
-        </div>
-        <div className="mt-3 flex gap-4 font-sans text-[14px] text-ink-2">
-          <Link to="/about">About & AI policy</Link>
         </div>
       </nav>
-    </div>
-  );
-}
-
-function Masthead({ meta }: { meta?: SiteMeta }) {
-  const hidden = useHideOnScroll();
-  const [menu, setMenu] = useState(false);
-  const { pathname } = useLocation();
-  useEffect(() => setMenu(false), [pathname]);
-  return (
-    <>
-      <header className={`no-print sticky top-0 z-40 border-b border-rule bg-paper/95 backdrop-blur transition-transform duration-200 supports-[backdrop-filter]:bg-paper/85 ${hidden && !menu ? '-translate-y-full' : 'translate-y-0'}`}>
-        <div className="wrap flex h-12 items-center justify-between md:h-16">
-          <Wordmark className="text-[24px] md:text-[32px]" />
-          <nav className="hidden items-center md:flex" aria-label="Primary">
-            {NAV.map((n) => (
-              <NavLink key={n.to} to={n.to} className={({ isActive }) => `px-3 py-2 font-sans text-[14px] font-medium ${isActive ? 'text-accent' : 'text-ink hover:text-accent'}`}>
-                {n.label}
-              </NavLink>
-            ))}
-            <SectionsDropdown />
-          </nav>
-          <div className="flex items-center">
-            <Link to="/search" className="inline-flex h-10 w-10 items-center justify-center text-ink-2 hover:text-ink" aria-label="Search">
-              <Search size={19} strokeWidth={1.75} aria-hidden="true" />
-            </Link>
-            <span className="hidden md:inline-flex">
-              <ThemeToggle />
-            </span>
-            <button type="button" onClick={() => setMenu(true)} className="inline-flex h-10 w-10 items-center justify-center text-ink md:hidden" aria-label="Open menu" aria-expanded={menu}>
-              <Menu size={21} strokeWidth={1.75} aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      </header>
-      <MobileMenu open={menu} onClose={() => setMenu(false)} meta={meta} />
-    </>
-  );
-}
-
-const BOTTOM = [
-  { to: '/', label: 'Home', icon: Home, match: (p: string) => p === '/' },
-  { to: '/india', label: 'India', icon: Landmark, match: (p: string) => p.startsWith('/india') || p.startsWith('/edition/india') },
-  { to: '/world', label: 'World', icon: Globe2, match: (p: string) => p.startsWith('/world') || p.startsWith('/edition/world') },
-  { to: '/editions', label: 'Editions', icon: Newspaper, match: (p: string) => p.startsWith('/editions') || p.startsWith('/weekly') || p.startsWith('/archive') },
-  { to: '/markets', label: 'Markets', icon: BarChart3, match: (p: string) => p.startsWith('/markets') },
-];
-
-function BottomNav() {
-  const { pathname } = useLocation();
-  return (
-    <nav className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-rule bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-[backdrop-filter]:bg-paper/90 md:hidden" aria-label="Quick navigation">
-      <ul className="grid grid-cols-5">
-        {BOTTOM.map(({ to, label, icon: Icon, match }) => {
-          const active = match(pathname);
-          return (
-            <li key={to}>
-              <Link to={to} aria-current={active ? 'page' : undefined} className={`relative flex h-14 flex-col items-center justify-center gap-0.5 font-sans text-[10.5px] font-medium transition-colors active:opacity-60 ${active ? 'text-accent' : 'text-ink-2'}`}>
-                {active && <span className="absolute inset-x-5 top-0 h-0.5 bg-accent" aria-hidden="true" />}
-                <Icon size={20} strokeWidth={active ? 2.1 : 1.75} aria-hidden="true" />
-                {label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+    </header>
   );
 }
 
 function Footer({ meta }: { meta?: SiteMeta }) {
+  const links = [
+    { to: '/about', label: 'About & methodology' },
+    { to: '/about#ai', label: 'AI policy' },
+    { href: `${import.meta.env.BASE_URL}feed.xml`, label: 'RSS feed' },
+    { to: '/archive', label: 'Archive' },
+    { to: '/status', label: 'Status' },
+  ];
   return (
-    <footer className="no-print mt-16 bg-paper-2">
-      <div className="wrap pb-28 pt-10 md:pb-12">
-        <div className="rule-heavy pt-6" />
-        <div className="grid gap-8 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-          <div>
-            <Wordmark className="text-[26px]" />
-            <p className="dek mt-3 max-w-sm text-[15px] leading-[1.55]">{SITE.description}</p>
-          </div>
-          <div>
-            <h3 className="kicker text-ink">Sections</h3>
-            <ul className="mt-3 space-y-2 font-sans text-[14px] text-ink-2">
-              <li><Link to="/india" className="hover:text-ink">India</Link></li>
-              <li><Link to="/world" className="hover:text-ink">World</Link></li>
-              <li><Link to="/markets" className="hover:text-ink">Steel Markets</Link></li>
-              <li><Link to="/latest" className="hover:text-ink">Latest News</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="kicker text-ink">Editions</h3>
-            <ul className="mt-3 space-y-2 font-sans text-[14px] text-ink-2">
-              <li><Link to="/edition/india" className="hover:text-ink">Today's India Edition</Link></li>
-              <li><Link to="/edition/world" className="hover:text-ink">Today's World Edition</Link></li>
-              <li><Link to="/editions" className="hover:text-ink">All editions</Link></li>
-              <li><Link to="/archive" className="hover:text-ink">Archive by date & company</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="kicker text-ink">About</h3>
-            <ul className="mt-3 space-y-2 font-sans text-[14px] text-ink-2">
-              <li><Link to="/about" className="hover:text-ink">Methodology & AI policy</Link></li>
-              <li><Link to="/status" className="hover:text-ink">Refresh status</Link></li>
-              <li><a href={`${import.meta.env.BASE_URL}feed.xml`} className="hover:text-ink">RSS feed</a></li>
-              <li><a href={githubRepoUrl} className="hover:text-ink" rel="noopener">Source code</a></li>
-            </ul>
-          </div>
+    <footer className="no-print mt-16 border-t border-rule">
+      <div className="wrap py-10">
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <Wordmark className="text-[24px]" />
+          <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 font-sans text-[13px] text-ink-2">
+            {links.map((l) => (
+              <li key={l.label}>
+                {'href' in l ? (
+                  <a href={l.href} className="hover:text-ink">
+                    {l.label}
+                  </a>
+                ) : (
+                  <Link to={l.to!} className="hover:text-ink">
+                    {l.label}
+                  </Link>
+                )}
+              </li>
+            ))}
+            <li>
+              <button type="button" onClick={toggleTheme} className="inline-flex items-center gap-1.5 hover:text-ink">
+                <Moon size={13} className="dark:hidden" aria-hidden="true" />
+                <Sun size={13} className="hidden dark:block" aria-hidden="true" />
+                <span className="dark:hidden">Dark mode</span>
+                <span className="hidden dark:inline">Light mode</span>
+              </button>
+            </li>
+          </ul>
         </div>
-        <div className="mt-10 border-t border-rule pt-4 font-sans text-[12px] leading-relaxed text-muted">
-          <p>
-            Headlines and excerpts belong to their publishers; every story links to the original. Summaries marked “AI summary” are machine-generated from publisher headlines and excerpts and may contain errors. SteelScope does not publish prices it cannot verify.
-          </p>
-          <p className="mt-2">
-            © {SITE.name}.{meta?.lastSuccessfulRefresh ? ` Last updated ${formatDateLong(meta.lastSuccessfulRefresh)}, ${formatTime(meta.lastSuccessfulRefresh)}.` : ''}
-          </p>
+        <p className="mt-6 font-sans text-[13px] leading-relaxed text-muted">
+          Headlines and excerpts belong to their publishers. Every story links to its original source. AI-assisted summaries may contain errors. SteelScope never estimates prices.
+        </p>
+        <div className="mt-4 flex flex-col gap-1 font-sans text-[12px] text-muted sm:flex-row sm:justify-between">
+          <span>© {new Date(meta?.generatedAt ?? '2026-01-01').getFullYear()} {SITE.name}</span>
+          {meta?.lastSuccessfulRefresh && (
+            <span>
+              Last updated {formatDateLong(meta.lastSuccessfulRefresh).replace(/^\w+, /, '')}, {formatTime(meta.lastSuccessfulRefresh)}
+            </span>
+          )}
         </div>
       </div>
     </footer>
@@ -294,12 +244,11 @@ export function SiteLayout({ children }: { children: ReactNode }) {
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-paper focus:px-3 focus:py-2">
         Skip to content
       </a>
-      <Masthead meta={meta} />
+      <Masthead />
       <main id="main" className="wrap">
         {children}
       </main>
       <Footer meta={meta} />
-      <BottomNav />
     </div>
   );
 }

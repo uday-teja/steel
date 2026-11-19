@@ -20,17 +20,17 @@ export function EditionPromo({ entry, region, tone = 'default' }: { entry?: Edit
   return (
     <Link
       to={entry ? `/edition/${region}/${entry.date}` : `/edition/${region}`}
-      className={`group block border ${inverse ? 'border-ink bg-ink text-paper' : 'border-rule-strong bg-paper'} p-5 sm:p-6`}
+      className={`group block border ${inverse ? 'rounded-[6px] border-teal bg-teal text-on-teal' : 'rounded-[6px] border-rule-strong bg-surface'} p-5 sm:p-6`}
     >
-      <div className={`flex items-center justify-between border-b pb-2 ${inverse ? 'border-paper/30' : 'border-rule'}`}>
-        <span className={`kicker ${inverse ? 'text-paper/80' : region === 'india' ? 'text-india' : 'text-world'}`}>{REGION_LABEL[region]} Edition</span>
-        {entry && <span className={`font-sans text-[11px] tabular-nums ${inverse ? 'text-paper/70' : 'text-muted'}`}>No. {entry.number}</span>}
+      <div className={`flex items-center justify-between border-b pb-2 ${inverse ? 'border-on-teal/25' : 'border-rule'}`}>
+        <span className={`kicker ${inverse ? 'text-on-teal/80' : region === 'india' ? 'text-india' : 'text-world'}`}>{REGION_LABEL[region]} Edition</span>
+        {entry && <span className={`font-sans text-[11px] tabular-nums ${inverse ? 'text-on-teal/70' : 'text-muted'}`}>No. {entry.number}</span>}
       </div>
-      <p className={`mt-3 font-sans text-[12px] ${inverse ? 'text-paper/70' : 'text-muted'}`}>{entry ? formatDateLong(entry.date) : 'Not yet published'}</p>
-      <h3 className={`mt-1 font-serif text-[22px] font-semibold leading-[1.15] sm:text-[24px] ${inverse ? 'text-paper' : 'text-ink'}`} style={{ textWrap: 'balance' }}>
+      <p className={`mt-3 font-sans text-[12px] ${inverse ? 'text-on-teal/70' : 'text-muted'}`}>{entry ? formatDateLong(entry.date) : 'Not yet published'}</p>
+      <h3 className={`mt-1 font-serif text-[22px] font-medium leading-[1.15] sm:text-[24px] ${inverse ? 'text-on-teal' : 'text-ink'}`} style={{ textWrap: 'balance' }}>
         {entry?.headline ?? `The ${REGION_LABEL[region]} Edition will appear after the next scheduled update.`}
       </h3>
-      <span className={`mt-4 inline-flex items-center gap-1.5 font-sans text-[13px] font-semibold ${inverse ? 'text-paper' : 'text-ink'}`}>
+      <span className={`mt-4 inline-flex items-center gap-1.5 font-sans text-[13px] font-semibold ${inverse ? 'text-on-teal' : 'text-ink'}`}>
         {entry ? `Read today's ${entry.articleCount} developments` : 'About editions'}
         <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
       </span>
@@ -72,7 +72,7 @@ export function MarketStrip({ market }: { market?: MarketData }) {
             <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">{ind.name}</p>
             {ind.status === 'available' && ind.latest ? (
               <>
-                <p className="mt-1 font-serif text-[22px] font-semibold tabular-nums leading-none">{formatNumber(ind.latest.value)}</p>
+                <p className="mt-1 font-serif text-[22px] font-medium tabular-nums leading-none">{formatNumber(ind.latest.value)}</p>
                 <p className="mt-1 flex items-center justify-between gap-2">
                   <span className="meta">{ind.unit}</span>
                   <ChangeBadge ind={ind} />

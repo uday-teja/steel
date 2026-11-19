@@ -14,7 +14,7 @@ function RegionFilter({ value, onChange }: { value: Filter; onChange: (v: Filter
   return (
     <div className="inline-flex border border-rule-strong p-0.5 font-sans text-[12px] font-semibold" role="tablist" aria-label="Filter by region">
       {(['all', 'india', 'world'] as Filter[]).map((r) => (
-        <button key={r} type="button" role="tab" aria-selected={value === r} onClick={() => onChange(r)} className={`px-3 py-1 ${value === r ? 'bg-ink text-paper' : 'text-ink-2 hover:text-ink'}`}>
+        <button key={r} type="button" role="tab" aria-selected={value === r} onClick={() => onChange(r)} className={`px-3 py-1 ${value === r ? 'bg-teal text-on-teal' : 'text-ink-2 hover:text-ink'}`}>
           {r === 'all' ? 'All' : REGION_LABEL[r]}
         </button>
       ))}

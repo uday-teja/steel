@@ -88,7 +88,7 @@ export function StoryItem({ card, image = false, dek = true, showRegion = true, 
 export function NumberedItem({ card, n }: { card: ArticleCard; n: number }) {
   return (
     <li className="relative grid grid-cols-[2rem_1fr] gap-2 border-t border-rule py-3 transition-opacity first:border-t-0 first:pt-0 active:opacity-70">
-      <span className="font-serif text-[26px] font-semibold leading-none text-accent tabular-nums">{n}</span>
+      <span className="font-serif text-[26px] font-medium leading-none text-accent tabular-nums">{n}</span>
       <div className="min-w-0">
         <h3 className="headline text-[17px] leading-[1.25]">
           <Link to={articlePath(card)} className="after:absolute after:inset-0">

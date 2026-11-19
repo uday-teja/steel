@@ -135,7 +135,7 @@ export function ArticlePage() {
         )}
 
         <div className="mt-8">
-          <a href={a.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-ink px-5 py-3 font-sans text-[14px] font-semibold text-paper hover:bg-accent">
+          <a href={a.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-[4px] bg-teal px-5 py-3 font-sans text-[14px] font-semibold text-on-teal hover:bg-teal-2">
             Read the full story at {a.publisher}
             <ExternalLink size={15} aria-hidden="true" />
           </a>

@@ -77,7 +77,7 @@ export function EditionPage({ kind = 'daily' }: { kind?: 'daily' | 'weekly' }) {
       {/* Edition masthead */}
       <header className="pt-8 text-center sm:pt-12">
         <p className={`kicker ${regionColor}`}>{weekly ? `The Week in Steel · ${REGION_LABEL[e.region]}` : 'Daily Steel Intelligence'}</p>
-        <h1 className="mt-2 font-serif text-[40px] font-bold leading-none tracking-[-0.02em] sm:text-[64px]">
+        <h1 className="mt-2 font-serif text-[40px] font-semibold leading-none tracking-[-0.02em] sm:text-[64px]">
           {weekly ? 'Weekly Report' : `${REGION_LABEL[e.region]} Edition`}
         </h1>
         <div className="rule-double mt-5" />
@@ -116,7 +116,7 @@ export function EditionPage({ kind = 'daily' }: { kind?: 'daily' | 'weekly' }) {
           <ol className="grid gap-x-10 md:grid-cols-2">
             {e.topStories.map((c, i) => (
               <li key={c.id} className="grid grid-cols-[2.25rem_1fr] gap-2 border-t border-rule py-4">
-                <span className="font-serif text-[28px] font-semibold leading-none text-accent tabular-nums">{i + 1}</span>
+                <span className="font-serif text-[28px] font-medium leading-none text-accent tabular-nums">{i + 1}</span>
                 <div className="min-w-0">
                   <h3 className="headline text-[18px] leading-[1.25]">
                     <Link to={articlePath(c)}>
@@ -139,7 +139,7 @@ export function EditionPage({ kind = 'daily' }: { kind?: 'daily' | 'weekly' }) {
 
       <section className="mt-12 grid gap-8 border-y-2 border-rule-strong bg-paper-2 px-5 py-6 sm:px-8 md:grid-cols-[200px_1fr]">
         <div>
-          <h2 className="font-serif text-[24px] font-semibold leading-tight">{e.region === 'india' ? 'Market overview' : 'Global market outlook'}</h2>
+          <h2 className="font-serif text-[24px] font-medium leading-tight">{e.region === 'india' ? 'Market overview' : 'Global market outlook'}</h2>
           {e.marketOverview && <AiMark className="mt-2" />}
         </div>
         <div className="prose-article">

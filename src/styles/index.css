@@ -1,12 +1,12 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/newsreader/opsz.css';
-@import '@fontsource-variable/newsreader/opsz-italic.css';
+@import '@fontsource-variable/inter-tight/index.css';
 @import '@fontsource-variable/inter/index.css';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 @theme {
-  --font-serif: 'Newsreader Variable', 'Iowan Old Style', 'Georgia', serif;
+  /* "serif" is the display face: Inter Tight for headlines, Inter for text and UI. */
+  --font-serif: 'Inter Tight Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --color-paper: var(--ss-paper);
@@ -20,38 +20,50 @@
   --color-india: var(--ss-india);
   --color-world: var(--ss-world);
   --color-positive: var(--ss-positive);
+  --color-teal: var(--ss-teal);
+  --color-teal-2: var(--ss-teal-2);
+  --color-on-teal: var(--ss-on-teal);
+  --color-surface: var(--ss-surface);
   --color-negative: var(--ss-negative);
 }
 
 :root {
-  --ss-paper: #f8f6f1;
-  --ss-paper-2: #efebe3;
-  --ss-ink: #121212;
-  --ss-ink-2: #383633;
-  --ss-muted: #6c6862;
-  --ss-rule: #dcd7cd;
-  --ss-rule-strong: #121212;
-  --ss-accent: #a3311b;
-  --ss-india: #a3311b;
-  --ss-world: #1f4a6e;
+  --ss-paper: #f6f4ef;
+  --ss-paper-2: #ecebe5;
+  --ss-surface: #fbfaf7;
+  --ss-ink: #16191b;
+  --ss-ink-2: #3d4245;
+  --ss-muted: #74787b;
+  --ss-rule: #e2dfd8;
+  --ss-rule-strong: #c9c5bc;
+  --ss-accent: #c4501f;
+  --ss-india: #c4501f;
+  --ss-world: #2f5d68;
+  --ss-teal: #1e3c42;
+  --ss-teal-2: #2a4c53;
+  --ss-on-teal: #f3f1ea;
   --ss-positive: #23704a;
-  --ss-negative: #a3311b;
+  --ss-negative: #b4401c;
   color-scheme: light;
 }
 
 [data-theme='dark'] {
-  --ss-paper: #121416;
-  --ss-paper-2: #1a1d20;
-  --ss-ink: #ebe8e2;
-  --ss-ink-2: #c8c4bd;
-  --ss-muted: #8d8982;
-  --ss-rule: #2b2f33;
-  --ss-rule-strong: #ebe8e2;
-  --ss-accent: #e2795f;
-  --ss-india: #e2795f;
-  --ss-world: #8db6dc;
+  --ss-paper: #111416;
+  --ss-paper-2: #1a1f21;
+  --ss-surface: #15191b;
+  --ss-ink: #ecebe6;
+  --ss-ink-2: #c3c6c4;
+  --ss-muted: #8c9192;
+  --ss-rule: #273034;
+  --ss-rule-strong: #3a4448;
+  --ss-accent: #e4794a;
+  --ss-india: #e4794a;
+  --ss-world: #8fbcc6;
+  --ss-teal: #183238;
+  --ss-teal-2: #22404a;
+  --ss-on-teal: #eef0ec;
   --ss-positive: #6cc195;
-  --ss-negative: #e2795f;
+  --ss-negative: #e4794a;
   color-scheme: dark;
 }
 
@@ -80,14 +92,13 @@
 
 @layer components {
   .wrap {
-    @apply mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8;
+    @apply mx-auto w-full max-w-[1228px] px-4 sm:px-6 lg:px-8;
   }
   .kicker {
-    @apply font-sans text-[11px] font-semibold uppercase tracking-[0.12em];
+    @apply font-sans text-[11px] font-semibold uppercase tracking-[0.09em];
   }
   .headline {
-    @apply font-serif font-semibold tracking-[-0.01em] text-ink;
-    font-optical-sizing: auto;
+    @apply font-serif font-medium tracking-[-0.018em] text-ink;
     text-wrap: balance;
   }
   .headline-link {
@@ -102,7 +113,7 @@
     background-size: 100% 1px;
   }
   .dek {
-    @apply font-serif text-ink-2;
+    @apply font-sans text-ink-2;
     text-wrap: pretty;
   }
   .meta {
@@ -115,17 +126,27 @@
     @apply border-t-2 border-rule-strong;
   }
   .rule-double {
-    border-top: 3px double var(--ss-rule-strong);
+    border-top: 1px solid var(--ss-rule);
+  }
+  /* Full-bleed background band inside the centred page container. */
+  .bleed {
+    margin-inline: calc(50% - 50vw);
+    padding-inline: calc(50vw - 50%);
+  }
+  .btn-teal {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-[4px] bg-teal px-4 font-sans text-[13px] font-semibold text-on-teal transition-colors hover:bg-teal-2;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-[4px] border border-rule-strong bg-surface px-4 font-sans text-[13px] font-semibold text-ink transition-colors hover:border-ink;
   }
   .prose-article p {
-    @apply font-serif text-[19px] leading-[1.65] text-ink sm:text-[20px];
+    @apply font-sans text-[17px] leading-[1.75] text-ink sm:text-[18px];
     text-wrap: pretty;
   }
   .prose-article p + p {
     @apply mt-5;
   }
-  .drop-cap::first-letter {
-    @apply float-left mr-2 mt-1 font-serif text-[4.2rem] font-semibold leading-[0.8] text-ink;
+  .drop-cap {
   }
   input[type='search']::-webkit-search-cancel-button,
   input[type='search']::-webkit-search-decoration {

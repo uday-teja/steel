@@ -16,7 +16,7 @@ export function RegionSwitch({ region }: { region: Region }) {
   return (
     <div className="inline-flex border border-rule-strong p-0.5 font-sans text-[13px] font-semibold" role="tablist" aria-label="Edition region">
       {(['india', 'world'] as Region[]).map((r) => (
-        <Link key={r} to={`/${r}`} role="tab" aria-selected={r === region} className={`px-4 py-1.5 ${r === region ? 'bg-ink text-paper' : 'text-ink-2 hover:text-ink'}`}>
+        <Link key={r} to={`/${r}`} role="tab" aria-selected={r === region} className={`px-4 py-1.5 ${r === region ? 'bg-teal text-on-teal' : 'text-ink-2 hover:text-ink'}`}>
           {REGION_LABEL[r]}
         </Link>
       ))}
@@ -100,7 +100,7 @@ export function RegionPage({ region }: { region: Region }) {
             return (
               <div key={cat.id}>
                 <Link to={`/category/${cat.id}?region=${region}`} className="block border-t border-rule-strong pt-2">
-                  <h3 className="font-serif text-[20px] font-semibold hover:text-accent">{cat.label}</h3>
+                  <h3 className="font-serif text-[20px] font-medium hover:text-accent">{cat.label}</h3>
                 </Link>
                 <ul className="mt-2">
                   {items.map((c) => (

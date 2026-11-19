@@ -98,7 +98,7 @@ export function SearchPage() {
           {(companyHits.length > 0 || sectionHits.length > 0) && (
             <div className="mb-6 flex flex-wrap gap-2">
               {companyHits.map((co) => (
-                <Link key={co.slug} to={`/company/${co.slug}`} className="border border-ink px-3 py-1.5 font-sans text-[13px] font-semibold text-ink hover:bg-ink hover:text-paper">
+                <Link key={co.slug} to={`/company/${co.slug}`} className="border border-ink px-3 py-1.5 font-sans text-[13px] font-semibold text-ink rounded-[4px] hover:bg-teal hover:text-on-teal hover:border-teal">
                   {co.name} · {co.count}
                 </Link>
               ))}

@@ -187,7 +187,7 @@ export function RefreshPanel({ meta }: { meta?: SiteMeta }) {
       <div className="border-t border-rule-strong p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <p className="font-serif text-[20px] font-semibold">Refresh news</p>
+            <p className="font-serif text-[20px] font-medium">Refresh news</p>
             <PhaseText phase={phase} endpoint={Boolean(endpoint)} />
           </div>
           {endpoint ? (
@@ -195,13 +195,13 @@ export function RefreshPanel({ meta }: { meta?: SiteMeta }) {
               type="button"
               onClick={request}
               disabled={busy || phase.k === 'cooldown'}
-              className="inline-flex shrink-0 items-center justify-center gap-2 bg-ink px-5 py-3 font-sans text-[14px] font-semibold text-paper hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-[4px] bg-teal px-5 py-3 font-sans text-[14px] font-semibold text-on-teal hover:bg-teal-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busy ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <RefreshCw size={16} aria-hidden="true" />}
               {busy ? 'Refreshing…' : 'Refresh news'}
             </button>
           ) : (
-            <a href={workflowUrl(SITE.github.refreshWorkflow)} target="_blank" rel="noopener" className="inline-flex shrink-0 items-center justify-center gap-2 border border-ink px-5 py-3 font-sans text-[14px] font-semibold text-ink hover:bg-ink hover:text-paper">
+            <a href={workflowUrl(SITE.github.refreshWorkflow)} target="_blank" rel="noopener" className="inline-flex shrink-0 items-center justify-center gap-2 border border-ink px-5 py-3 font-sans text-[14px] font-semibold text-ink rounded-[4px] hover:bg-teal hover:text-on-teal hover:border-teal">
               Open refresh workflow <ExternalLink size={15} aria-hidden="true" />
             </a>
           )}
@@ -252,7 +252,7 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
   return (
     <div className="bg-paper p-4">
       <p className="kicker text-muted">{label}</p>
-      <p className="mt-1.5 font-serif text-[19px] font-semibold leading-tight">{value}</p>
+      <p className="mt-1.5 font-serif text-[19px] font-medium leading-tight">{value}</p>
       {sub && <p className="meta mt-1">{sub}</p>}
     </div>
   );

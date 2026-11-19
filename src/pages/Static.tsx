@@ -50,7 +50,7 @@ export function MarketsPage() {
         <>
           {available === 0 && (
             <div className="mt-6 border-l-2 border-accent bg-paper-2 p-5">
-              <p className="font-serif text-[19px] font-semibold">Verified price data is not connected yet</p>
+              <p className="font-serif text-[19px] font-medium">Verified price data is not connected yet</p>
               <p className="mt-2 font-sans text-[14px] leading-relaxed text-ink-2">{data?.note}</p>
             </div>
           )}
@@ -76,7 +76,7 @@ export function MarketsPage() {
                       {items.map((i) => (
                         <tr key={i.id} className="border-b border-rule align-top">
                           <td className="py-3 pr-2">
-                            <p className="font-serif text-[16px] font-semibold">{i.name}</p>
+                            <p className="font-serif text-[16px] font-medium">{i.name}</p>
                             <p className="meta mt-0.5 hidden sm:block">{i.description}</p>
                             <p className="meta mt-0.5">{i.unit}</p>
                           </td>
@@ -182,7 +182,7 @@ export function AboutPage() {
   useDocumentTitle('About & methodology');
   const enabled = sources.sources.filter((s) => s.enabled);
   const unavailable = sources.sources.filter((s) => !s.enabled);
-  const h2 = 'font-serif text-[26px] font-semibold leading-tight mt-12';
+  const h2 = 'font-serif text-[26px] font-medium leading-tight mt-12';
   const p = 'font-serif text-[18px] leading-[1.65] text-ink mt-4';
   return (
     <div className="mx-auto max-w-[760px] pb-6">
@@ -219,7 +219,7 @@ export function AboutPage() {
         ))}
       </ul>
 
-      <h2 className={h2}>How AI is used</h2>
+      <h2 id="ai" className={h2}>How AI is used</h2>
       <p className={p}>
         When enabled, a large language model reads each story's headline and publisher excerpt and writes a short summary, key facts, why it matters and industry implications. It also helps classify stories, spot duplicates, score importance, and write each edition's introduction and analysis. Everything machine-written is labelled <em>AI summary</em>.
       </p>
