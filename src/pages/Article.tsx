@@ -2,7 +2,7 @@ import { ExternalLink, Info } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { EmptyState, LoadingBlock, SectionHeader, useDocumentTitle } from '../components/Common';
 import { ShareBar } from '../components/ShareBar';
-import { AiMark, Cover, Kicker, StoryItem } from '../components/Story';
+import { AiMark, Kicker, StoryItem } from '../components/Story';
 import { useData } from '../lib/data';
 import { formatDateLong, formatDateTime, formatTime } from '../lib/format';
 import { absoluteUrl, shareImageUrl } from '../lib/site';
@@ -60,6 +60,9 @@ export function ArticlePage() {
           <span>
             Published <time dateTime={a.publishedAt}>{formatDateTime(a.publishedAt)}</time>
           </span>
+          <a href={a.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-accent hover:underline">
+            Read at {a.publisher} <ExternalLink size={13} aria-hidden="true" />
+          </a>
           <span className="hidden sm:inline">
             In the{' '}
             <Link to={`/edition/${a.region}/${a.editionDate}`} className="underline underline-offset-2 hover:text-ink">
@@ -69,12 +72,6 @@ export function ArticlePage() {
         </div>
       </div>
 
-      <figure className="mx-auto mt-6 max-w-[1040px]">
-        <Cover card={a} className="aspect-[16/9] w-full" priority />
-        <figcaption className="meta mt-2 px-0">
-          Illustration: SteelScope ({CATEGORY_MAP[a.primaryCategory].label}). SteelScope does not republish publishers' photographs.
-        </figcaption>
-      </figure>
 
       <div className="mx-auto max-w-[760px]">
         <div className="mt-6">

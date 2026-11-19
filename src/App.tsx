@@ -5,6 +5,7 @@ import { EditionPage, LatestEditionRedirect } from './pages/Edition';
 import { HomePage } from './pages/Home';
 import { ArchivePage, CategoryPage, CompanyPage, DayPage, EditionsPage, LatestPage } from './pages/Lists';
 import { RegionPage } from './pages/Region';
+import { SearchPage } from './pages/Search';
 import { AboutPage, MarketsPage, NotFoundPage, StatusPage } from './pages/Static';
 
 export function App() {
@@ -25,6 +26,7 @@ export function App() {
         <Route path="/archive" element={<ArchivePage />} />
         <Route path="/archive/:date" element={<DayPage />} />
         <Route path="/company/:slug" element={<CompanyPage />} />
+        <Route path="/search" element={<SearchPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/status" element={<StatusPage />} />
         <Route path="*" element={<NotFoundPage />} />

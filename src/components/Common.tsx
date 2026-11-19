@@ -36,7 +36,7 @@ export function EmptyState({ title, children, icon = 'inbox' }: { title: string;
 export function LoadingBlock({ lines = 6 }: { lines?: number }) {
   return (
     <div className="animate-pulse space-y-4 py-6" aria-busy="true" aria-label="Loading">
-      <div className="aspect-[16/9] w-full bg-paper-2" />
+      <div className="h-10 w-4/5 bg-paper-2" />
       {Array.from({ length: lines }, (_, i) => (
         <div key={i} className="h-4 bg-paper-2" style={{ width: `${90 - ((i * 13) % 40)}%` }} />
       ))}

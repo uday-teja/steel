@@ -2,7 +2,6 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { inflateSync } from 'node:zlib';
 import { Resvg } from '@resvg/resvg-js';
-import { coverSvg } from '../../src/lib/cover';
 import type { CategoryId, Region } from '../../src/types/news';
 
 /** Convert a WOFF 1.0 font to TTF/OTF so resvg can load it (fontsource ships WOFF/WOFF2 only). */
@@ -128,34 +127,32 @@ const REGION_COLOR: Record<Region, string> = { india: '#A3311B', world: '#1F4A6E
 export function cardSvg(c: CardInput): string {
   const W = 1200;
   const H = 630;
-  const leftW = 720;
-  const pad = 64;
-  const textW = leftW - pad * 2;
-  let size = 54;
+  const pad = 72;
+  const textW = W - pad * 2;
+  let size = 64;
   let lines = wrap(c.title, size, textW, 4);
-  while ((lines.length > 3 || lines.some((l) => l.endsWith('…'))) && size > 40) {
+  while ((lines.length > 3 || lines.some((l) => l.endsWith('…'))) && size > 46) {
     size -= 4;
     lines = wrap(c.title, size, textW, 4);
   }
-  const lh = size * 1.12;
-  const titleTop = 200;
-  const summaryTop = titleTop + lines.length * lh + 28;
-  const sumLines = c.summary ? wrap(c.summary, 23, textW, summaryTop + 3 * 32 < H - 110 ? 3 : 2) : [];
-
-  const cover = coverSvg({ seed: c.seed, category: c.category, region: c.region, standalone: false, idPrefix: 's' });
+  const lh = size * 1.1;
+  const titleTop = 205;
+  const summaryTop = titleTop + lines.length * lh + 26;
+  const roomForSummary = Math.floor((H - 120 - summaryTop) / 34);
+  const sumLines = c.summary && roomForSummary > 0 ? wrap(c.summary, 25, textW, Math.min(3, roomForSummary)) : [];
+  const accent = REGION_COLOR[c.region];
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <rect width="${W}" height="${H}" fill="#F8F6F1"/>
-  <svg x="${leftW}" y="0" width="${W - leftW}" height="${H}" viewBox="300 0 ${W - leftW} 675" preserveAspectRatio="xMidYMid slice">${cover}</svg>
-  <rect x="${leftW}" y="0" width="6" height="${H}" fill="${REGION_COLOR[c.region]}"/>
-  <text x="${pad}" y="98" font-family="Newsreader" font-weight="700" font-size="44" fill="#121212">Steel<tspan fill="#A3311B">Scope</tspan></text>
-  <rect x="${pad}" y="120" width="${textW}" height="3" fill="#121212"/>
-  <rect x="${pad}" y="126" width="${textW}" height="1" fill="#121212"/>
-  <text x="${pad}" y="166" font-family="Inter" font-weight="600" font-size="17" letter-spacing="2.4" fill="${REGION_COLOR[c.region]}">${esc(c.kicker.toUpperCase())}</text>
+  <rect width="${W}" height="10" fill="${accent}"/>
+  <text x="${pad}" y="98" font-family="Newsreader" font-weight="700" font-size="46" fill="#121212">Steel<tspan fill="#A3311B">Scope</tspan></text>
+  <text x="${W - pad}" y="96" text-anchor="end" font-family="Inter" font-weight="600" font-size="17" letter-spacing="2.4" fill="${accent}">${esc(c.kicker.toUpperCase())}</text>
+  <rect x="${pad}" y="122" width="${textW}" height="3" fill="#121212"/>
+  <rect x="${pad}" y="128" width="${textW}" height="1" fill="#121212"/>
   ${lines.map((l, i) => `<text x="${pad}" y="${f(titleTop + (i + 0.8) * lh)}" font-family="Newsreader" font-weight="600" font-size="${size}" fill="#121212">${esc(l)}</text>`).join('\n  ')}
-  ${sumLines.map((l, i) => `<text x="${pad}" y="${f(summaryTop + (i + 0.8) * 32)}" font-family="Inter" font-weight="400" font-size="23" fill="#4A4743">${esc(l)}</text>`).join('\n  ')}
-  <rect x="${pad}" y="${H - 78}" width="${textW}" height="1" fill="#DCD7CD"/>
-  <text x="${pad}" y="${H - 42}" font-family="Inter" font-weight="600" font-size="18" fill="#121212">${esc(c.footer)}</text>
-  ${measure(c.footer, 18) + measure('Daily steel intelligence', 17) + 40 < textW ? `<text x="${leftW - pad}" y="${H - 42}" text-anchor="end" font-family="Inter" font-weight="400" font-size="17" fill="#6C6862">Daily steel intelligence</text>` : ''}
+  ${sumLines.map((l, i) => `<text x="${pad}" y="${f(summaryTop + (i + 0.8) * 34)}" font-family="Inter" font-weight="400" font-size="25" fill="#4A4743">${esc(l)}</text>`).join('\n  ')}
+  <rect x="${pad}" y="${H - 84}" width="${textW}" height="1" fill="#DCD7CD"/>
+  <text x="${pad}" y="${H - 46}" font-family="Inter" font-weight="600" font-size="19" fill="#121212">${esc(c.footer)}</text>
+  ${measure(c.footer, 19) + measure('Daily steel intelligence', 18) + 40 < textW ? `<text x="${W - pad}" y="${H - 46}" text-anchor="end" font-family="Inter" font-weight="400" font-size="18" fill="#6C6862">Daily steel intelligence</text>` : ''}
 </svg>`;
 }
 

@@ -129,13 +129,15 @@ refresh-proxy/     optional Cloudflare Worker for the public Refresh button
   India), steel blue `#1F4A6E` for World. Dark mode is a full token swap, saved per reader.
 - **Structure**: hairline rules, heavy and double rules for section breaks, small-caps section
   labels, numbered lists, no rounded cards, no gradients in the UI, no decorative motion.
-- **Imagery**: publishers' photographs are copyrighted, so each story gets a deterministic,
-  category-specific engraving-style illustration (coils, beams, ore, trusses, containers…) rendered
-  as inline SVG. The same art drives the share cards.
-- **Mobile**: sticky compact masthead, sticky bottom navigation (Home · India · World · Editions ·
-  Markets), India/World switch, scrollable category rail, 16px gutters, no horizontal page scroll.
+- **Imagery**: none, by design. SteelScope is text-led like the FT or The Economist: publishers' photographs are copyrighted and decorative stand-ins add load without information. Share cards are typographic.
+- **Mobile**: sticky compact masthead with search, sticky bottom navigation (Home · India · World ·
+  Editions · Markets) that stays highlighted inside sections, a briefing bar (date, last update, one-tap
+  India/World editions), whole-card tap targets, a scrollable category rail with an edge fade, 16px
+  gutters, no horizontal page scroll.
+- **Front page**: every story appears once; empty price boxes are hidden until verified data exists.
+- **Search**: instant client-side search over the past week, with company and section shortcuts.
 - **Sharing**: WhatsApp, LinkedIn, X, Facebook, native share sheet, copy link, and a downloadable
-  branded 1200×630 card per story and per edition (also used as the `og:image`).
+  typographic 1200×630 card per story and per edition (also used as the `og:image`).
 
 ## 8. Milestones
 

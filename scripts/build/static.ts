@@ -121,6 +121,7 @@ async function main(): Promise<void> {
     { route: '/markets', head: { title: `Steel markets | ${site.name}`, description: 'Steel and raw-material price indicators for India and international markets, from verified sources only.' }, changefreq: 'daily' },
     { route: '/archive', head: { title: `Archive | ${site.name}`, description: 'Steel industry news archive by date, company and section.' }, changefreq: 'daily' },
     { route: '/about', head: { title: `About & methodology | ${site.name}`, description: 'How SteelScope collects, summarises and publishes steel industry news, and how AI is used.' }, changefreq: 'monthly' },
+    { route: '/search', head: { title: `Search | ${site.name}`, description: 'Search the past week of steel industry news.', noindex: true } },
     { route: '/status', head: { title: `Refresh status | ${site.name}`, description: 'Pipeline and publication status for SteelScope.', noindex: true } },
   ];
   for (const c of CATEGORIES) routes.push({ route: `/category/${c.id}`, head: { title: `${c.label} | ${site.name}`, description: c.description }, changefreq: 'daily' });
@@ -261,7 +262,7 @@ async function main(): Promise<void> {
       seed: `weekly-${w.region}-${w.date}`,
       category: ed.featured?.primaryCategory ?? 'market-analysis',
       region: w.region,
-      kicker: `The Week in Steel · ${REGION_LABEL[w.region]} · Week of ${longDate(w.date)}`,
+      kicker: `Week in Steel · ${REGION_LABEL[w.region]} · ${new Date(`${w.date}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`,
       title: ed.title,
       summary: `${ed.articleCount} developments from ${ed.sources.length} publishers.`,
       footer: domain,

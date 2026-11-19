@@ -62,7 +62,7 @@ export function ShareBar({ url, title, text, imageUrl, label = 'Share' }: { url:
     }
   };
 
-  const btn = 'inline-flex h-9 items-center gap-2 border border-rule px-3 font-sans text-[12px] font-medium text-ink-2 transition-colors hover:border-ink hover:text-ink';
+  const btn = 'inline-flex h-10 min-w-10 items-center justify-center gap-2 border border-rule px-2.5 font-sans text-[12px] font-medium text-ink-2 transition-colors hover:border-ink hover:text-ink active:bg-paper-2 sm:h-9 sm:px-3';
 
   return (
     <div className="no-print">
@@ -79,14 +79,14 @@ export function ShareBar({ url, title, text, imageUrl, label = 'Share' }: { url:
             <span className="hidden sm:inline">{name}</span>
           </a>
         ))}
-        <button type="button" onClick={copy} className={btn} aria-live="polite">
+        <button type="button" onClick={copy} className={btn} aria-live="polite" aria-label="Copy link">
           {copied ? <Check className={icon} aria-hidden="true" /> : <Link2 className={icon} aria-hidden="true" />}
-          {copied ? 'Copied' : 'Copy link'}
+          <span className={copied ? '' : 'hidden sm:inline'}>{copied ? 'Copied' : 'Copy link'}</span>
         </button>
         {imageUrl && (
-          <a href={imageUrl} download className={btn} target="_blank" rel="noopener">
+          <a href={imageUrl} download className={btn} target="_blank" rel="noopener" aria-label="Download share card image">
             <Download className={icon} aria-hidden="true" />
-            <span>Share card</span>
+            <span className="hidden sm:inline">Share card</span>
           </a>
         )}
       </div>

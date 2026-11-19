@@ -1,4 +1,4 @@
-import { BarChart3, Globe2, Home, Landmark, Moon, Newspaper, RefreshCw, Sun } from 'lucide-react';
+import { BarChart3, Globe2, Home, Landmark, Moon, Newspaper, Search, Sun } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useData } from '../lib/data';
@@ -66,8 +66,8 @@ function Masthead({ meta }: { meta?: SiteMeta }) {
         <div className="wrap flex h-14 items-center justify-between">
           <Wordmark size="sm" />
           <div className="flex items-center">
-            <Link to="/status" className="inline-flex h-9 w-9 items-center justify-center text-ink-2" aria-label="Refresh status">
-              <RefreshCw size={16} strokeWidth={1.75} aria-hidden="true" />
+            <Link to="/search" className="inline-flex h-10 w-10 items-center justify-center text-ink-2" aria-label="Search">
+              <Search size={19} strokeWidth={1.75} aria-hidden="true" />
             </Link>
             <ThemeToggle />
           </div>
@@ -78,8 +78,11 @@ function Masthead({ meta }: { meta?: SiteMeta }) {
       <div className="hidden md:block">
         <div className="wrap flex h-10 items-center justify-between font-sans text-[12px] text-muted">
           <span>{editionDate ? formatDateLong(editionDate) : 'Daily steel industry intelligence'}</span>
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-4">
             <StatusChip meta={meta} />
+            <Link to="/search" className="inline-flex items-center gap-1.5 hover:text-ink" aria-label="Search">
+              <Search size={15} strokeWidth={1.75} aria-hidden="true" /> Search
+            </Link>
             <ThemeToggle />
           </div>
         </div>
@@ -106,7 +109,8 @@ function Masthead({ meta }: { meta?: SiteMeta }) {
       </div>
 
       {/* Category rail (all sizes) */}
-      <nav className="wrap" aria-label="Categories">
+      <nav className="wrap relative" aria-label="Categories">
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-paper to-transparent md:hidden" aria-hidden="true" />
         <ul className="scrollbar-none -mx-4 flex gap-0.5 overflow-x-auto border-b border-rule px-4 py-1.5 sm:mx-0 sm:px-0 md:flex-wrap md:justify-center md:overflow-visible">
           <li className="shrink-0">
             <NavLink to="/latest" className={({ isActive }) => `inline-block whitespace-nowrap px-2.5 py-1.5 font-sans text-[12px] ${isActive ? 'font-semibold text-accent' : 'text-ink-2 hover:text-ink'}`}>
@@ -127,25 +131,30 @@ function Masthead({ meta }: { meta?: SiteMeta }) {
 }
 
 const BOTTOM = [
-  { to: '/', label: 'Home', icon: Home, end: true },
-  { to: '/india', label: 'India', icon: Landmark },
-  { to: '/world', label: 'World', icon: Globe2 },
-  { to: '/editions', label: 'Editions', icon: Newspaper },
-  { to: '/markets', label: 'Markets', icon: BarChart3 },
+  { to: '/', label: 'Home', icon: Home, match: (p: string) => p === '/' },
+  { to: '/india', label: 'India', icon: Landmark, match: (p: string) => p.startsWith('/india') || p.startsWith('/edition/india') },
+  { to: '/world', label: 'World', icon: Globe2, match: (p: string) => p.startsWith('/world') || p.startsWith('/edition/world') },
+  { to: '/editions', label: 'Editions', icon: Newspaper, match: (p: string) => p.startsWith('/editions') || p.startsWith('/weekly') || p.startsWith('/archive') },
+  { to: '/markets', label: 'Markets', icon: BarChart3, match: (p: string) => p.startsWith('/markets') },
 ];
 
 function BottomNav() {
+  const { pathname } = useLocation();
   return (
     <nav className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-rule bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-[backdrop-filter]:bg-paper/90 md:hidden" aria-label="Quick navigation">
       <ul className="grid grid-cols-5">
-        {BOTTOM.map(({ to, label, icon: Icon, end }) => (
-          <li key={to}>
-            <NavLink to={to} end={end} className={({ isActive }) => `flex h-14 flex-col items-center justify-center gap-0.5 font-sans text-[10.5px] font-medium ${isActive ? 'text-accent' : 'text-ink-2'}`}>
-              <Icon size={19} strokeWidth={1.75} aria-hidden="true" />
-              {label}
-            </NavLink>
-          </li>
-        ))}
+        {BOTTOM.map(({ to, label, icon: Icon, match }) => {
+          const active = match(pathname);
+          return (
+            <li key={to}>
+              <Link to={to} aria-current={active ? 'page' : undefined} className={`relative flex h-14 flex-col items-center justify-center gap-0.5 font-sans text-[10.5px] font-medium transition-colors active:opacity-60 ${active ? 'text-accent' : 'text-ink-2'}`}>
+                {active && <span className="absolute inset-x-5 top-0 h-0.5 bg-accent" aria-hidden="true" />}
+                <Icon size={20} strokeWidth={active ? 2.1 : 1.75} aria-hidden="true" />
+                {label}
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );
